@@ -1,0 +1,176 @@
+Here are the **Rules of Thumb** for your AI agent to ensure the VuraDesk UI remains clean, modular, and professional:
+
+---
+
+### 1. The "Information Density" Rule
+
+Enterprise agents look at dashboards for 8 hours a day. The UI must be readable, not cramped.
+
+* **Whitespace is Functional:** Instruct the AI to use `gap-6` or `p-6` (24px) for main containers. Avoid "Information Overload."
+* **The 3-Second Rule:** An agent should understand a ticket's status, priority, and requester within 3 seconds of the page loading.
+* **AI Instruction:** *"When generating components, prioritize high-contrast typography for primary data (Ticket IDs, Subjects) and muted tones for metadata (Timestamps, Folder names)."*
+
+### 2. The "Atomic Component" Rule
+
+To keep the code modular (the "Open Source Soul"), the AI shouldn't write "Mega-Components."
+
+* **Strict Separation:** Keep the **Logic** (fetching tickets) separate from the **Presentational** components (the table row).
+* **Small Files:** No component file should exceed 150 lines. If it does, tell the AI to break it into sub-components (e.g., `TicketBadge.tsx`, `TicketActions.tsx`).
+* **AI Instruction:** *"Always extract reusable UI patterns into the `@/components/ui` or `@/components/shared` folders. Use TypeScript interfaces for all component props."*
+
+### 3. The "State-Driven" UI Rule
+
+Since VuraDesk is a support system, the UI must reflect the **State** of the ticket immediately.
+
+* **Visual Cues:** Every status (Open, Pending, Resolved) must have a distinct, consistent color token.
+* **Loading States:** Never show a blank screen. The AI must always generate "Skeletons" (`<Skeleton />` from shadcn) for when data is being fetched.
+* **AI Instruction:** *"Generate shadcn-based skeleton loaders for all data-fetching components. Ensure status badges use a 'soft' color palette (bg-opacity-10 with solid borders)."*
+
+### 4. The "Context-First" Navigation Rule
+
+UVDesk excels at keeping the agent in their "flow."
+
+* **Sticky Actions:** The "Reply" and "Change Status" buttons should always be accessible (usually in a sticky header or sidebar) so the agent doesn't have to scroll back up.
+* **Keyboard First:** Professional agents hate using the mouse.
+* **AI Instruction:** *"Include ARIA labels for all interactive elements and ensure the layout is navigable via Tab. Where possible, suggest 'Command Palette' (CMD+K) shortcuts for quick actions."*
+
+---
+
+### 🛠️ Example "Prompt Snippet" for your AI Agent
+
+When you want the AI to build a new feature, use this structure:
+
+> "Build a **TicketDetailView** component.
+> 1. Follow the **Three-Column Layout** (Navigation | Conversation Thread | Ticket Metadata Sidebar).
+> 2. Use **shadcn/ui** components exclusively.
+> 3. Keep it **modular**: extract the 'Message Bubble' into its own sub-component.
+> 4. Ensure the **primary action** (The Reply Box) is pinned to the bottom of the viewport with a subtle shadow."
+>
+>
+
+---
+
+### 🎨 Design Tokens to standardise:
+
+| Element | Tailwind Class Recommendation |
+| --- | --- |
+| **Main Background** | `bg-slate-50/50` (soft, non-white) |
+| **Card/Panel** | `bg-white border-slate-200 shadow-sm` |
+| **Primary Text** | `text-slate-900 font-semibold` |
+| **Secondary Text** | `text-slate-500 text-sm` |
+
+**Would you like me to generate a "System Prompt" you can give to your AI agent to ensure it always follows these rules?**
+
+
+-----------
+
+
+Here is a comprehensive **System Prompt** designed to turn your AI agent into a Senior Frontend Architect for **VuraDesk**. This prompt enforces the "UVDesk" design philosophy: clean lines, modular code, and an agent-centric "Clear View."
+
+---
+
+### 🛠️ The VuraDesk Senior UI Architect System Prompt
+
+**Role & Identity:**
+You are a **Senior Frontend Architect** specializing in enterprise-grade support systems (SaaS). Your goal is to build **VuraDesk**, an open-source ticketing system inspired by the clean, modular interface of UVDesk. You prioritize developer experience (clean code), accessibility, and agent productivity.
+
+**Core Technical Stack:**
+
+* **Framework:** React 19+ (Vite) with TypeScript.
+* **Styling:** Tailwind CSS v4 (CSS-first configuration).
+* **Components:** shadcn/ui (Radix UI primitives).
+* **Icons:** Lucide React.
+* **Design Tokens:** Slate/Zinc color palette, inter-font, and 4px-base spacing scale.
+
+**Design Philosophy (The "Clear View" Guidelines):**
+
+1. **Information Hierarchy:** Primary data (Ticket Subject, ID) must be bold and high-contrast. Metadata (Timestamps, Tags) must be muted (`text-slate-500`).
+2. **Modular Construction:** Never build monolithic files. Extract reusable logic into hooks (`useTicket`) and UI into atomic components (`TicketBadge`, `UserAvatar`).
+3. **State-Driven UI:** Every component must account for: `loading` (Skeleton), `error` (Empty states), and `active` (Hover/Focus).
+4. **Agent Flow:** Keep primary actions (Reply, Status Change) persistent. Use a "Three-Column Layout" for ticket details (Navigation | Content | Metadata).
+
+**Coding Standards:**
+
+* **Import Aliases:** Always use `@/` for imports (e.g., `@/components/ui/button`).
+* **Prop Types:** Every component must have an explicit TypeScript `interface` or `type`.
+* **Tailwind Best Practices:** Use the `cn()` utility for conditional classes. Avoid arbitrary values; stick to the Tailwind scale.
+* **Accessibility:** All interactive elements must have `aria-label` or `title` attributes and support keyboard navigation.
+
+**Output Protocol:**
+
+* When asked to build a feature, first describe the **Component Architecture** (which files will be created).
+* Provide code in small, copy-pasteable blocks.
+* Include a brief "Design Note" explaining why you chose a specific layout or interaction pattern.
+
+---
+
+### 💡 How to use this prompt:
+
+Copy and paste the text above into the "System Instructions" or "System Prompt" field of your AI agent (like ChatGPT, Claude, or a custom IDE agent like Cursor).
+
+**To start your first task, you can now tell the agent:**
+
+> "Following our system prompt, let's build the **Main Ticket List** component. It should look like the UVDesk grid view, using a shadcn `Table`. Include columns for: ID, Subject, Requester, Priority (with badges), and Last Updated."
+
+**Would you like me to help you refine the "Ticket Status Badge" logic so the AI handles the colors correctly?**
+
+
+----------------------------------------------------------
+
+
+
+To build a **Login Page** that feels exactly like **UVDesk**, we need to focus on its specific brand of "clinical professionalism."
+
+UVDesk uses a very specific look: a dark, authoritative sidebar or background contrasted with a clean, high-white input card. Since we are using **Tailwind v4** and **shadcn/ui**, the prompt below ensures your AI agent uses the correct modern syntax while keeping the "UVDesk" soul.
+
+---
+
+### 🚀 AI Prompt: Build the VuraDesk Login Page (UVDesk Style)
+
+**Context:**
+We are building the **Login Page** for **VuraDesk**. The design must strictly follow the **UVDesk** aesthetic: a professional, enterprise-grade interface with a dark sidebar/background and a clean, centered authentication card.
+
+**Technical Constraints:**
+
+* **Framework:** React + TypeScript + Vite.
+* **CSS:** Tailwind CSS v4 (Use `@theme` variables in CSS, not `tailwind.config.js`).
+* **Components:** shadcn/ui (use `@/components/ui/...`).
+
+**UI/UX Specifications (The UVDesk Look):**
+
+1. **Layout:** A split-screen layout or a centered card on a deep navy/slate background (`#1A2B3C`).
+2. **The Card:** A crisp white card (`bg-white`) with very subtle borders (`border-slate-200`) and a professional shadow (`shadow-sm`). Use `rounded-md` (UVDesk is sharp, not bubbly).
+3. **Color Palette:**
+* **Primary Action:** Blue (`#0052CC` or `bg-blue-600`).
+* **Background:** Deep Navy (`#1A2B3C` or `bg-slate-900`).
+* **Text:** High-contrast slate for headers, muted slate for labels.
+
+
+4. **Form Elements:**
+* Centered **VuraDesk Logo** placeholder.
+* Email and Password fields with clear, slate-colored labels.
+* A "Remember Me" checkbox and "Forgot Password" link on the same horizontal line.
+* A full-width "Sign In" button that shows a loader when clicked.
+
+
+
+**Component Architecture:**
+
+1. Create `src/pages/auth/Login.tsx`.
+2. Extract the form logic into a modular component: `src/components/auth/LoginForm.tsx`.
+3. Ensure all imports use the `@/` alias.
+
+**AI Instructions:**
+
+* "Verify if `shadcn` components (`Button`, `Input`, `Checkbox`, `Card`) are installed. If not, provide the `npx shadcn@latest add` commands."
+* "Use **Lucide React** for icons (Mail, Lock, Eye/EyeOff for password toggle)."
+* "Add a 'Caps Lock' detection warning below the password field."
+* "Include a footer link below the card: 'New to VuraDesk? Create an account'."
+
+---
+
+### 💡 Design Note for VuraDesk
+
+UVDesk's strength is its **uncluttered focus**. Tell your agent: *"Keep the padding consistent (p-8 for the card) and ensure the 'Sign In' button has a distinct hover state that feels responsive but professional."*
+
+**Would you like me to provide the "UVDesk Theme" CSS variables for your `index.css` so the AI agent knows exactly which colors to use?**

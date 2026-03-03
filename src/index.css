@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme {
+  /* This overrides shadcn's 'primary' (the dark color) with UVDesk Blue */
+  --color-primary: #00A3E0;
+  --color-primary-foreground: #ffffff;
+
+  /* Custom UVDesk Colors */
+  --color-uv-blue: #00A3E0;
+  --color-uv-blue-hover: #008BBE;
+  --color-uv-navy: #263238;
+  --color-uv-bg: #F5F7F9;
+  --color-uv-border: #D3DCE3;
+
+  /* Sharp corners for that enterprise look */
+  --radius-md: 2px;
+  --radius-sm: 1px;
+}
