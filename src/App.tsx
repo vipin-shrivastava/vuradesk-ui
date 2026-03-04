@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/auth/Login'; // Updated import path to the new Login page
-import DashboardPage from './pages/DashboardPage';
+import LoginPage from './pages/auth/Login';
+import Dashboard from './pages/Dashboard'; // Corrected import to point to the modified Dashboard.tsx
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css'; // Keep global styles if any
 
@@ -14,7 +14,7 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <Dashboard /> {/* Use the correctly imported Dashboard component */}
           </ProtectedRoute>
         }
       />

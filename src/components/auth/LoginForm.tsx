@@ -40,6 +40,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     setError(null);
 
+    // --- Start of modification for dummy login ---
+    if (email === 'test@example.com' && password === 'password') {
+      // Simulate successful login
+      localStorage.setItem('jwtToken', 'dummy-jwt-token');
+      localStorage.setItem('userRole', 'admin');
+      if (rememberMe) {
+        localStorage.setItem('rememberMeEmail', email);
+      } else {
+        localStorage.removeItem('rememberMeEmail');
+      }
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+      navigate('/dashboard');
+      setLoading(false);
+      return; // Exit the function after dummy login
+    }
+    // --- End of modification for dummy login ---
+
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, role } = response.data;

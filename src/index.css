@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
 @theme {
   /* This overrides shadcn's 'primary' (the dark color) with UVDesk Blue */
   --color-primary: #00A3E0;
