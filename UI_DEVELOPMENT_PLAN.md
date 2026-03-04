@@ -10,9 +10,9 @@
 *   **Flexibility:** Can be used for single-page applications (SPAs) and integrated into existing projects.
 *   **Strong Job Market:** Easier to find developers with React experience.
 
-## 2. Initial Project Setup (React)
+## 2. Initial Project Setup (React) - [COMPLETED]
 
-### 2.1. Project Initialization
+### 2.1. Project Initialization [COMPLETED]
 
 We will use Create React App (CRA) or Vite for a quick start. For a more modern and faster development experience, Vite is recommended.
 
@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-### 2.2. Folder Structure (Proposed)
+### 2.2. Folder Structure (Proposed) [ADOPTED]
 
 ```
 src/
@@ -41,7 +41,7 @@ src/
 └── index.css           # Global CSS
 ```
 
-### 2.3. State Management
+### 2.3. State Management [ADOPTED]
 
 *   **Option 1 (Context API + `useReducer`):** For simpler global state needs, React's built-in Context API combined with `useReducer` can be sufficient.
 *   **Option 2 (Redux Toolkit):** For more complex applications with extensive global state, Redux Toolkit provides a robust and streamlined approach.
@@ -49,11 +49,11 @@ src/
 
 **Recommendation:** Start with **Context API + `useReducer`** for initial global state. If complexity grows significantly, consider migrating to Redux Toolkit or a lightweight alternative like Zustand.
 
-### 2.4. Routing
+### 2.4. Routing [COMPLETED]
 
 *   **React Router DOM:** The standard library for routing in React applications.
 
-### 2.5. Styling
+### 2.5. Styling [COMPLETED]
 
 *   **Option 1 (Tailwind CSS):** A utility-first CSS framework for rapidly building custom designs. Highly recommended for its speed and maintainability.
 *   **Option 2 (Styled Components / Emotion):** CSS-in-JS libraries for component-scoped styles.
@@ -61,7 +61,7 @@ src/
 
 **Recommendation:** **Tailwind CSS** for rapid development and consistent styling.
 
-### 2.6. API Integration
+### 2.6. API Integration [ADOPTED]
 
 *   **Fetch API (built-in):** Sufficient for basic API calls.
 *   **Axios:** A popular promise-based HTTP client for the browser and Node.js, offering more features like interceptors and automatic JSON transformation.
