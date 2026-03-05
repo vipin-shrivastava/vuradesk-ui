@@ -20,6 +20,10 @@
   --color-uv-bg: #F5F7F9;
   --color-uv-border: #D3DCE3;
 
+  /* Custom Popover/Tooltip Styles */
+  --color-popover: var(--color-uv-navy);
+  --color-popover-foreground: #ffffff;
+
   /* Sharp corners for that enterprise look */
   --radius-md: 2px;
   --radius-sm: 1px;
