@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import mockDashboardService from '../services/mockDashboardService';
+import RoleDropdown from '@/components/RoleDropdown'; // Import the RoleDropdown component
 
 interface TicketSummary {
   totalTickets: number;
@@ -70,12 +71,18 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <RoleDropdown />
+        </div>
+      </header>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Total Tickets</h2>
             <p className="text-4xl font-bold text-blue-600">{summary.totalTickets}</p>
+
           </div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Open Tickets</h2>
@@ -108,7 +115,7 @@ const DashboardPage: React.FC = () => {
             <p className="text-gray-500">No recent activity.</p>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };

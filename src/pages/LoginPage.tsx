@@ -1,38 +1,38 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // Import the API service
+import { useAuth } from '@/contexts/AuthContext'; // Import the useAuth hook
+import axiosClient from '@/api/axiosClient'; // Import the correct axios client
+import { toast } from 'sonner';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Add loading state
+  const { login } = useAuth(); // Get the login function from the context
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Clear previous errors
+    setIsLoading(true); // Disable button on submission
 
     try {
-      const response = await api.post('/auth/login', { email, password });
-      const { token, role } = response.data; // Assuming the API returns token and role
+      const response = await axiosClient.post('/auth/login', { email, password });
 
-      localStorage.setItem('jwtToken', token);
-      localStorage.setItem('userRole', role); // Store user role if needed for authorization
+      // The login function in AuthContext now handles the redirect logic
+      // based on the presence of a default role.
+      const { token, user } = response.data;
+      login(token, user);
 
-      navigate('/dashboard'); // Redirect to dashboard on successful login
     } catch (err: any) {
       console.error('Login failed:', err);
-      if (err.response && err.response.status === 401) {
-        setError('Invalid email or password.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
+      const errorMessage = err.response?.data?.message || 'Invalid email or password.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false); // Re-enable button after request is complete
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6"> {/* Added responsive horizontal padding */}
-      <div className="bg-white p-8 rounded-lg shadow-md w-full sm:max-w-md md:max-w-lg"> {/* Adjusted max-width for responsiveness */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full sm:max-w-md md:max-w-lg">
         <h2 className="text-2xl font-bold text-center mb-6">Login to VuraDesk</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -47,6 +47,7 @@ const LoginPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="mb-6">
@@ -61,15 +62,16 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
-          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-blue-300"
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </button>
             <a
               className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"

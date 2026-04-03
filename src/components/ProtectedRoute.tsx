@@ -1,16 +1,28 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('jwtToken');
+  const { isAuthenticated, user, activeRole } = useAuth();
+  const location = useLocation();
+
+  console.log(
+    `[ProtectedRoute] Path: ${location.pathname}, Authenticated: ${isAuthenticated}, ActiveRole: ${activeRole}`
+  );
 
   if (!isAuthenticated) {
     // User is not authenticated, redirect to login page
     return <Navigate to="/login" replace />;
+  }
+
+  // If user is authenticated, but has multiple roles and no active role is selected,
+  // and they are not already on the select-role page, redirect them.
+  if (user && user.roles && user.roles.length > 1 && !activeRole && location.pathname !== '/select-role') {
+    return <Navigate to="/select-role" replace />;
   }
 
   return <>{children}</>;

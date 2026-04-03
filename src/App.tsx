@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/auth/Login';
-import Dashboard from './pages/Dashboard'; // Corrected import to point to the modified Dashboard.tsx
+import LoginPage from './pages/LoginPage'; // Corrected import path for LoginPage
+import DashboardPage from './pages/DashboardPage'; // Corrected import to point to DashboardPage.tsx
+import SelectRolePage from './pages/SelectRolePage'; // Import the new SelectRolePage
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css'; // Keep global styles if any
 
@@ -9,12 +10,19 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      {/* Protect the Dashboard route */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard /> {/* Use the correctly imported Dashboard component */}
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/select-role"
+        element={
+          <ProtectedRoute>
+            <SelectRolePage />
           </ProtectedRoute>
         }
       />
