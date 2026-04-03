@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate, Navigate } from 'react-router-dom'; // Import Navigate component
+import { useNavigate, Navigate } from 'react-router-dom';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
 
@@ -20,22 +20,23 @@ const SelectRolePage: React.FC = () => {
       return;
     }
 
-    try {
-      // Set the active role in the context
-      setActiveRole(selectedRole);
+    // Set the active role in the context immediately for instant UI transition
+    setActiveRole(selectedRole);
 
-      // If the user wants to set this role as their default, make an API call
-      if (setAsDefault) {
-        await axiosClient.post('/users/me/preferences', { defaultRole: selectedRole });
+    // If the user wants to set this role as their default, attempt to save it.
+    // Use a try/catch block to ensure navigation happens even if this API call fails.
+    if (setAsDefault) {
+      try {
+        await axiosClient.put('/users/me/preferences', { defaultRole: selectedRole });
         toast.success('Default role saved.');
+      } catch (error) {
+        console.error('Failed to save default role preference:', error);
+        toast.warning('Could not save your default role preference, but you can continue.');
       }
-
-      // Navigate to the dashboard
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Failed to set role:', error);
-      toast.error('Failed to set the active role. Please try again.');
     }
+
+    // Always navigate to the dashboard after setting the active role.
+    navigate('/dashboard');
   };
 
   // Guard against users who shouldn't be on this page

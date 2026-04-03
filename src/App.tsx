@@ -1,12 +1,15 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/LoginPage'; // Corrected import path for LoginPage
-import DashboardPage from './pages/DashboardPage'; // Corrected import to point to DashboardPage.tsx
-import SelectRolePage from './pages/SelectRolePage'; // Import the new SelectRolePage
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import SelectRolePage from './pages/SelectRolePage';
 import ProtectedRoute from './components/ProtectedRoute';
-import './App.css'; // Keep global styles if any
+import './App.css';
 
 function App() {
+  // isSessionChecked is now always true due to synchronous initialization in AuthProvider
+  // No need for a loading guard here anymore.
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
