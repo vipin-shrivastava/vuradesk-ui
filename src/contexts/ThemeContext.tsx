@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import axiosClient from '@/api/axiosClient'; // Assuming you have an axiosClient configured
+import axiosClient from '@/api/axiosClient';
 
 interface ThemeContextType {
   isDarkMode: boolean;
@@ -22,7 +22,7 @@ export const useTheme = () => {
 };
 
 const DEFAULT_BRAND_COLOR = '#03363D'; // Zendesk Blue as the default
-const DEFAULT_LOGO_URL = '/logo/vuradesk-logo.svg';
+const DEFAULT_LOGO_URL = '@/assets/logo.png'; // Updated default path
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -36,12 +36,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [logoUrl, setLogoUrl] = useState<string>(DEFAULT_LOGO_URL);
 
   useEffect(() => {
-    const html = document.documentElement;
-    if (isDarkMode) {
-      html.classList.add('dark');
-    } else {
-      html.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', isDarkMode);
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
@@ -51,7 +46,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const fetchTenantTheme = useCallback(async () => {
     try {
-      // Updated endpoint to match backend naming convention
       const response = await axiosClient.get('/tenants/settings');
       const { brandColor: fetchedBrandColor, logoUrl: fetchedLogoUrl } = response.data;
 
@@ -63,7 +57,6 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     } catch (error) {
       console.error('Failed to fetch tenant theme, falling back to default.', error);
-      // Fallback to defaults if fetching fails
       setBrandColor(DEFAULT_BRAND_COLOR);
       setLogoUrl(DEFAULT_LOGO_URL);
     }
