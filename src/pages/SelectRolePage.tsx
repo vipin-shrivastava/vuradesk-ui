@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
+import { ShieldCheck, Headset, User as UserIcon } from 'lucide-react'; // Import Lucide icons
 
 // Define a more robust Role type
 type Role = string | { id: number | string; name: string };
@@ -20,11 +21,8 @@ const SelectRolePage: React.FC = () => {
       return;
     }
 
-    // Set the active role in the context immediately for instant UI transition
     setActiveRole(selectedRole);
 
-    // If the user wants to set this role as their default, attempt to save it.
-    // Use a try/catch block to ensure navigation happens even if this API call fails.
     if (setAsDefault) {
       try {
         await axiosClient.put('/users/me/preferences', { defaultRole: selectedRole });
@@ -35,59 +33,73 @@ const SelectRolePage: React.FC = () => {
       }
     }
 
-    // Always navigate to the dashboard after setting the active role.
     navigate('/dashboard');
   };
 
-  // Guard against users who shouldn't be on this page
   if (!user || !user.roles || user.roles.length <= 1) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Helper to get the value and name from a role object or string
   const getRoleName = (role: Role): string => (typeof role === 'string' ? role : role.name);
 
-  // Main component render
+  // Map role names to Lucide icons
+  const getRoleIcon = (roleName: string) => {
+    switch (roleName.toUpperCase()) {
+      case 'ADMIN':
+      case 'SUB_ADMIN':
+        return <ShieldCheck size={48} className="text-blue-600 mb-4" />;
+      case 'AGENT':
+        return <Headset size={48} className="text-green-600 mb-4" />;
+      case 'CUSTOMER':
+        return <UserIcon size={48} className="text-purple-600 mb-4" />;
+      default:
+        return <UserIcon size={48} className="text-gray-600 mb-4" />;
+    }
+  };
+
   const renderContent = () => (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Select Your Role</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-2xl">
+        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Select Your Role</h2>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="role" className="block text-gray-700 text-sm font-bold mb-2">
-              Available Roles
-            </label>
-            <select
-              id="role"
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            >
-              <option value="" disabled>-- Please choose a role --</option>
-              {user.roles.map((role: Role) => (
-                <option key={getRoleName(role)} value={getRoleName(role)}>
-                  {getRoleName(role)}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {user.roles.map((role: Role) => {
+              const roleName = getRoleName(role);
+              const isSelected = selectedRole === roleName;
+              return (
+                <div
+                  key={roleName}
+                  className={`flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 ease-in-out
+                    ${isSelected ? 'border-blue-600 shadow-md scale-105' : 'border-gray-200 hover:border-blue-400 hover:scale-105'}
+                  `}
+                  onClick={() => setSelectedRole(roleName)}
+                >
+                  {getRoleIcon(roleName)}
+                  <span className="text-xl font-semibold text-gray-800">{roleName}</span>
+                </div>
+              );
+            })}
           </div>
-          <div className="mb-6">
-            <label className="flex items-center">
+
+          <div className="mb-8 text-center">
+            <label className="flex items-center justify-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={setAsDefault}
                 onChange={(e) => setSetAsDefault(e.target.checked)}
-                className="form-checkbox h-5 w-5 text-blue-600"
+                className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="ml-2 text-gray-700">Set as my default role</span>
+              <span className="ml-3 text-gray-700 text-base">Set as my default role</span>
             </label>
           </div>
+
           <div className="flex items-center justify-center">
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50"
+              disabled={!selectedRole}
             >
-              Continue
+              Continue to Dashboard
             </button>
           </div>
         </form>
@@ -95,7 +107,6 @@ const SelectRolePage: React.FC = () => {
     </div>
   );
 
-  // Safety net return
   return user && user.roles ? renderContent() : <div>Loading user data...</div>;
 };
 

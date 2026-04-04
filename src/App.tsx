@@ -4,23 +4,17 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import SelectRolePage from './pages/SelectRolePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import MainLayout from './components/MainLayout';
 import './App.css';
 
 function App() {
-  // isSessionChecked is now always true due to synchronous initialization in AuthProvider
-  // No need for a loading guard here anymore.
-
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/" element={<LoginPage />} />
+
+      {/* Protected Routes that DO NOT use the MainLayout */}
       <Route
         path="/select-role"
         element={
@@ -29,8 +23,31 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* Add a default route or redirect to login */}
-      <Route path="/" element={<LoginPage />} />
+
+      {/* Protected Routes that DO use the MainLayout */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      {/* Add other layout-wrapped routes here, e.g., /tickets, /settings */}
+      {/*
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TicketsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+      */}
     </Routes>
   );
 }
