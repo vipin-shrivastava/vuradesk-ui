@@ -80,7 +80,7 @@ const TicketDetailPage: React.FC = () => {
     let containerClasses = `flex flex-col w-full ${isMe ? 'items-end' : 'items-start'}`;
 
     if (isMe) {
-      bubbleClasses = 'bg-blue-600/90 text-white self-end text-right ml-auto';
+      bubbleClasses = 'bg-blue-600/90 text-white self-end text-right ml-auto dark:bg-blue-600/90';
     } else if (entry.internal) {
       bubbleClasses = 'bg-yellow-100/50 dark:bg-slate-900 border-l-4 border-yellow-400 dark:border-slate-800 self-start text-left mr-auto text-text-main';
     } else {
@@ -131,17 +131,22 @@ const TicketDetailPage: React.FC = () => {
   const replyBoxBorder = isInternalNote ? 'border-yellow-400 focus:ring-yellow-400' : 'border-gray-300 dark:border-slate-700 focus:ring-primary-brand';
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 flex flex-col bg-card-bg rounded-lg shadow-md border border-card-border">
-        <div className="p-4 border-b border-card-border">
-          <Link to="/tickets" className="flex items-center text-sm text-gray-500 hover:text-primary-brand mb-4">
-            <ArrowLeft size={16} className="mr-2" />
-            Back to Tickets
-          </Link>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{ticket.subject}</h1>
+    <div className="h-[calc(100vh-64px)] overflow-hidden w-full flex">
+      {/* Main Content (Left) */}
+      <div className="flex-1 flex flex-col bg-card-bg shadow-sm border-r border-card-border overflow-hidden">
+        {/* Header */}
+        <div className="p-3 border-b border-card-border shrink-0 flex items-center justify-between">
+          <div>
+             <Link to="/tickets" className="flex items-center text-sm text-gray-500 hover:text-primary-brand mb-1">
+              <ArrowLeft size={16} className="mr-1" />
+              Back
+             </Link>
+             <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate max-w-lg">{ticket.subject}</h1>
+          </div>
         </div>
 
-        <div ref={scrollRef} className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[600px]">
+        {/* Thread (Scrollable) */}
+        <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto flex flex-col space-y-6 w-full">
           <div className="flex flex-col w-full items-start">
             <div className="flex items-center mb-1 ml-1">
               <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
@@ -149,49 +154,59 @@ const TicketDetailPage: React.FC = () => {
                  {ticket.customerName} (Initial Request)
               </span>
             </div>
-            <div className="p-4 rounded-xl mb-4 max-w-2xl bg-slate-50 dark:bg-slate-900 border border-transparent dark:border-slate-800 self-start text-left mr-auto text-text-main">
+            <div className="p-4 rounded-xl mb-4 w-full max-w-5xl bg-slate-50 dark:bg-slate-900 border border-transparent dark:border-slate-800 self-start text-left mr-auto text-text-main">
               <p className="whitespace-pre-wrap">{ticket.description}</p>
               <div className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-left">
                 {formatBackendDate(ticket.createdAt as any)}
               </div>
             </div>
           </div>
-          {ticket?.threadEntries?.map(renderThreadEntry)}
+          {ticket?.threadEntries?.map((entry, idx) => (
+             <div key={`${entry.id}-${idx}`} className="w-full flex justify-center">
+               <div className="w-full max-w-5xl">
+                 {renderThreadEntry(entry, idx)}
+               </div>
+             </div>
+          ))}
         </div>
 
-        <div className={`p-4 border-t bg-background-main transition-colors ${isInternalNote ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
-          <form onSubmit={handleReplySubmit}>
-            <textarea
-              value={newReply}
-              onChange={(e) => setNewReply(e.target.value)}
-              placeholder={isInternalNote ? "Type an internal note... (visible to agents only)" : "Type your reply..."}
-              rows={3}
-              className={`w-full p-4 pr-24 rounded-lg border dark:bg-slate-800 focus:outline-none focus:ring-2 transition-colors ${replyBoxBorder}`}
-              disabled={isReplying}
-              spellCheck="false"
-            />
-            <div className="flex items-center justify-between mt-2">
-              {activeRole !== 'CUSTOMER' ? (
-                <label className="flex items-center cursor-pointer text-sm text-gray-600 dark:text-gray-400">
-                  <input type="checkbox" checked={isInternalNote} onChange={(e) => setIsInternalNote(e.target.checked)} className="form-checkbox h-4 w-4 text-yellow-500 rounded focus:ring-yellow-400" />
-                  <Lock size={14} className="ml-2 mr-1" />
-                  Private Note
-                </label>
-              ) : <div />}
-              <div className="flex items-center space-x-2">
-                <button type="button" className="p-2 text-gray-500 hover:text-primary-brand" disabled={isReplying}>
-                  <Paperclip size={20} />
-                </button>
-                <button type="submit" className="p-2 rounded-full text-white flex items-center justify-center w-9 h-9" style={{ backgroundColor: 'var(--primary-brand)' }} disabled={!newReply.trim() || isReplying}>
-                  {isReplying ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                </button>
+        {/* Reply Box (Fixed at bottom) */}
+        <div className={`p-4 border-t bg-background-main shrink-0 transition-colors ${isInternalNote ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}>
+          <div className="w-full max-w-5xl mx-auto">
+            <form onSubmit={handleReplySubmit}>
+              <textarea
+                value={newReply}
+                onChange={(e) => setNewReply(e.target.value)}
+                placeholder={isInternalNote ? "Type an internal note... (visible to agents only)" : "Type your reply..."}
+                rows={3}
+                className={`w-full p-4 pr-24 rounded-lg border dark:bg-slate-800 focus:outline-none focus:ring-2 transition-colors ${replyBoxBorder}`}
+                disabled={isReplying}
+                spellCheck="false"
+              />
+              <div className="flex items-center justify-between mt-2">
+                {activeRole !== 'CUSTOMER' ? (
+                  <label className="flex items-center cursor-pointer text-sm text-gray-600 dark:text-gray-400">
+                    <input type="checkbox" checked={isInternalNote} onChange={(e) => setIsInternalNote(e.target.checked)} className="form-checkbox h-4 w-4 text-yellow-500 rounded focus:ring-yellow-400" />
+                    <Lock size={14} className="ml-2 mr-1" />
+                    Private Note
+                  </label>
+                ) : <div />}
+                <div className="flex items-center space-x-2">
+                  <button type="button" className="p-2 text-gray-500 hover:text-primary-brand" disabled={isReplying}>
+                    <Paperclip size={20} />
+                  </button>
+                  <button type="submit" className="p-2 rounded-full text-white flex items-center justify-center w-9 h-9" style={{ backgroundColor: 'var(--primary-brand)' }} disabled={!newReply.trim() || isReplying}>
+                    {isReplying ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
 
-      <aside className="w-64 ml-6 bg-card-bg rounded-lg shadow-md border border-card-border p-6">
+      {/* Right Sidebar for Metadata */}
+      <aside className="w-64 bg-card-bg shadow-sm border-l border-card-border p-6 shrink-0 h-full overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4 border-b border-card-border pb-2">Ticket Details</h3>
         <div className="space-y-4 text-sm">
           <div>
