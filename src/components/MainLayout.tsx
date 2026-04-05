@@ -15,12 +15,11 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const { user, logout, activeRole } = useAuth(); // Get activeRole
+  const { user, logout, activeRole } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { settings } = useSystemSettings();
   const location = useLocation();
 
-  // Dynamically generate navigation based on role
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: true },
     {
@@ -49,9 +48,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-background-main text-text-main" style={{ fontFamily: 'var(--font-family)' }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-text-main transition-colors duration-300" style={{ fontFamily: 'var(--font-family)' }}>
       <aside
-        className={`bg-sidebar-bg shadow-lg transition-all duration-300 ease-in-out
+        className={`bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? 'w-20' : 'w-64'} flex flex-col relative`}
       >
         <div className="flex items-center justify-center h-16 border-b border-card-border px-4">
@@ -72,7 +71,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Tooltip key={item.name} text={item.name}>
                 <Link
                   to={item.href}
-                  className={`relative flex items-center p-3 rounded-lg text-text-main hover:bg-gray-200 dark:hover:bg-gray-700
+                  className={`relative flex items-center p-3 rounded-lg text-text-main hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300
                     ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 >
                   {isActive && (
@@ -98,7 +97,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </aside>
 
       <div className="flex-1 flex flex-col">
-        <header className="bg-sidebar-bg shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+        <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -112,24 +111,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="flex items-center space-x-2">
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300"
             >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {isDarkMode ? <Sun size={20} className="text-yellow-300" /> : <Moon size={20} />}
             </button>
             <RoleDropdown />
             <div className="relative">
-              <button onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)} className="flex items-center p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+              <button onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)} className="flex items-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
                 <User className="h-6 w-6" />
               </button>
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-sidebar-bg rounded-lg shadow-xl py-2 z-10 border border-card-border">
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-2 z-10 border border-card-border">
                   <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-card-border">
                     Signed in as <br />
                     <span className="font-semibold">{user?.username}</span>
                   </div>
                   <button
                     onClick={logout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout
@@ -142,7 +141,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         <main className="flex-1 overflow-auto">
           <div className="p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
-            {children}
+            <div className="bg-white dark:bg-slate-900 shadow-sm dark:shadow-none rounded-lg">
+              {children}
+            </div>
           </div>
         </main>
       </div>

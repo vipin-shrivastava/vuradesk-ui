@@ -23,7 +23,7 @@ const TicketDetailPage: React.FC = () => {
     if (!newReply.trim() || !ticketId || !ticket || !user) return;
 
     setIsReplying(true);
-    const payload = { message: newReply, isInternal: isInternalNote };
+    const payload = { message: newReply, internal: isInternalNote };
     console.log("Submit Reply Payload:", payload);
 
     const newEntryObject: ThreadEntry = {
@@ -72,9 +72,7 @@ const TicketDetailPage: React.FC = () => {
   console.log("Entries to render:", ticket.threadEntries);
 
   const renderThreadEntry = (entry: ThreadEntry, index: number) => {
-    // Calculate if the message is from the current user
     const isMe = entry.posterId === user.id;
-
     const effectiveRole = entry.posterRole;
     const isAdmin = effectiveRole === 'ADMIN';
 
@@ -82,24 +80,30 @@ const TicketDetailPage: React.FC = () => {
     let containerClasses = `flex flex-col w-full ${isMe ? 'items-end' : 'items-start'}`;
 
     if (isMe) {
-      bubbleClasses = 'bg-blue-600 text-white self-end text-right ml-auto';
+      bubbleClasses = 'bg-blue-600/90 text-white self-end text-right ml-auto';
     } else if (entry.internal) {
-      bubbleClasses = 'bg-yellow-100/50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 self-start text-left mr-auto text-text-main';
+      bubbleClasses = 'bg-yellow-100/50 dark:bg-slate-900 border-l-4 border-yellow-400 dark:border-slate-800 self-start text-left mr-auto text-text-main';
     } else {
-      bubbleClasses = 'bg-slate-100 dark:bg-slate-700 self-start text-left mr-auto text-text-main';
+      bubbleClasses = 'bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-800 self-start text-left mr-auto text-text-main';
     }
 
     return (
       <div key={`${entry.id}-${index}`} className={containerClasses}>
-        {/* Name and badge above the bubble for everyone */}
         <div className={`flex items-center mb-1 ${isMe ? 'mr-1 justify-end' : 'ml-1'}`}>
           <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
-            {/* User Icon for everyone */}
-            <UserIcon size={12} className={`mr-1 ${isMe ? 'ml-2 order-last' : ''}`} />
-            {isMe ? 'You' : `${entry.posterFirstName} ${entry.posterLastName}`}
+            {isMe && isAdmin && (
+              <span className="mr-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                <ShieldCheck size={10} className="mr-1" />
+                Staff
+              </span>
+            )}
 
-            {isAdmin && (
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 ${isMe ? 'mr-2 order-first' : 'ml-2'}`}>
+            <UserIcon size={12} className={`mr-1 ${isMe ? 'ml-2 order-last' : ''}`} />
+
+            {isMe ? 'You' : `${entry.posterFirstName || ''} ${entry.posterLastName || ''}`.trim() || entry.author}
+
+            {!isMe && isAdmin && (
+              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
                 <ShieldCheck size={10} className="mr-1" />
                 Staff
               </span>
@@ -116,8 +120,6 @@ const TicketDetailPage: React.FC = () => {
 
         <div className={`p-4 rounded-xl mb-4 max-w-2xl ${bubbleClasses}`}>
           <p className="whitespace-pre-wrap">{entry.message || (entry as any).content}</p>
-
-          {/* Timestamp inside bubble, right-aligned for "Me", left for "Others" */}
           <div className={`mt-2 text-[10px] ${isMe ? 'text-blue-200 text-right' : 'text-slate-400 dark:text-slate-500 text-left'}`}>
             {formatBackendDate(entry.createdAt as any)}
           </div>
@@ -136,7 +138,7 @@ const TicketDetailPage: React.FC = () => {
             <ArrowLeft size={16} className="mr-2" />
             Back to Tickets
           </Link>
-          <h1 className="text-2xl font-bold text-text-main">{ticket.subject}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{ticket.subject}</h1>
         </div>
 
         <div ref={scrollRef} className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[600px]">
@@ -147,7 +149,7 @@ const TicketDetailPage: React.FC = () => {
                  {ticket.customerName} (Initial Request)
               </span>
             </div>
-            <div className="p-4 rounded-xl mb-4 max-w-2xl bg-slate-50 dark:bg-slate-800/50 self-start text-left mr-auto text-text-main">
+            <div className="p-4 rounded-xl mb-4 max-w-2xl bg-slate-50 dark:bg-slate-900 border border-transparent dark:border-slate-800 self-start text-left mr-auto text-text-main">
               <p className="whitespace-pre-wrap">{ticket.description}</p>
               <div className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-left">
                 {formatBackendDate(ticket.createdAt as any)}
@@ -193,20 +195,20 @@ const TicketDetailPage: React.FC = () => {
         <h3 className="text-lg font-semibold mb-4 border-b border-card-border pb-2">Ticket Details</h3>
         <div className="space-y-4 text-sm">
           <div>
-            <label className="block text-gray-500 dark:text-gray-400">Ticket ID</label>
+            <label className="block text-slate-500 dark:text-slate-500">Ticket ID</label>
             <span className="font-semibold text-text-main">#{ticket.id}</span>
           </div>
           <div>
-            <label className="block text-gray-500 dark:text-gray-400">Status</label>
+            <label className="block text-slate-500 dark:text-slate-500">Status</label>
             <span className="font-semibold text-text-main">{ticket.status}</span>
           </div>
           <div>
-            <label className="block text-gray-500 dark:text-gray-400">Priority</label>
+            <label className="block text-slate-500 dark:text-slate-500">Priority</label>
             <span className="font-semibold text-text-main">{ticket.priority}</span>
           </div>
           <div>
-            <label className="block text-gray-500 dark:text-gray-400">Created</label>
-            <span className="font-semibold text-text-main">{formatBackendDate(ticket.createdAt as any)}</span>
+            <label className="block text-slate-500 dark:text-slate-500">Created</label>
+            <span className="font-semibold text-slate-500 dark:text-slate-500">{formatBackendDate(ticket.createdAt as any)}</span>
           </div>
         </div>
       </aside>

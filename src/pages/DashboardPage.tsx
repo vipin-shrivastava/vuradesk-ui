@@ -45,57 +45,58 @@ const DashboardPage: React.FC = () => {
   }, [activeRole]);
 
   if (loading) {
-    return <div className="text-center">Loading dashboard data...</div>;
+    return <div className="text-center p-8">Loading dashboard data...</div>;
   }
 
   if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
+    return <div className="text-center text-red-500 p-8">{error}</div>;
   }
 
   if (!dashboardData) {
-    return <div className="text-center">No dashboard data available.</div>;
+    return <div className="text-center p-8 text-slate-500 dark:text-slate-400">No dashboard data available.</div>;
   }
 
   const { summary, recentActivities } = dashboardData;
-  const cardClasses = "bg-card-bg p-6 rounded-lg shadow-sm border border-card-border transition-all duration-300 hover:shadow-md hover:-translate-y-1";
+  const cardClasses = "bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-transparent dark:border-slate-800/60 transition-all duration-300 hover:shadow-md hover:-translate-y-1";
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-text-main mb-6">Dashboard</h1>
+    <div className="p-4 md:p-8">
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Dashboard</h1>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className={cardClasses}>
-          <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-4">Total Tickets</h2>
-          <p className="text-4xl font-bold text-blue-600">{summary.totalTickets}</p>
+          <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-400 mb-4">Total Tickets</h2>
+          <p className="text-4xl font-bold text-blue-500 dark:text-blue-400">{summary.totalTickets}</p>
         </div>
         <div className={cardClasses}>
-          <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-4">Open Tickets</h2>
-          <p className="text-4xl font-bold text-yellow-600">{summary.openTickets}</p>
+          <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-400 mb-4">Open Tickets</h2>
+          <p className="text-4xl font-bold text-orange-500 dark:text-orange-400">{summary.openTickets}</p>
         </div>
         <div className={cardClasses}>
-          <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-4">In Progress</h2>
-          <p className="text-4xl font-bold text-purple-600">{summary.inProgressTickets}</p>
+          <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-400 mb-4">In Progress</h2>
+          <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">{summary.inProgressTickets}</p>
         </div>
         <div className={cardClasses}>
-          <h2 className="text-xl font-semibold text-gray-500 dark:text-gray-400 mb-4">Closed Tickets</h2>
-          <p className="text-4xl font-bold text-green-600">{summary.closedTickets}</p>
+          <h2 className="text-xl font-semibold text-slate-500 dark:text-slate-400 mb-4">Closed Tickets</h2>
+          <p className="text-4xl font-bold text-emerald-500 dark:text-emerald-400">{summary.closedTickets}</p>
         </div>
       </div>
 
-      <div className="bg-card-bg p-6 rounded-lg shadow-sm border border-card-border">
-        <h2 className="text-xl font-semibold text-text-main mb-4">Recent Activity</h2>
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-transparent dark:border-slate-800/60">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Recent Activity</h2>
         {recentActivities.length > 0 ? (
-          <ul>
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {recentActivities.map((activity) => (
-              <li key={activity.id} className="border-b border-card-border py-3 last:border-b-0">
-                <span className="font-medium text-text-main">{activity.description}</span>
-                <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
+              <li key={activity.id} className="py-3">
+                <span className="font-medium text-slate-900 dark:text-slate-200">{activity.description}</span>
+                <span className="text-slate-500 dark:text-slate-500 text-sm ml-2">
                   ({new Date(activity.timestamp).toLocaleString()})
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">No recent activity.</p>
+          <p className="text-slate-500 dark:text-slate-500">No recent activity.</p>
         )}
       </div>
     </div>
