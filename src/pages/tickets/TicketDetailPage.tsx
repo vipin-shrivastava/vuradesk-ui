@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTicket, ThreadEntry } from '@/hooks/useTicket';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
-import { Paperclip, Send, Loader2, ArrowLeft, Lock } from 'lucide-react';
+import { Paperclip, Send, Loader2, ArrowLeft, Lock, ShieldCheck, User as UserIcon } from 'lucide-react';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
 import { formatBackendDate } from '@/utils/dateUtils';
@@ -20,7 +20,7 @@ const TicketDetailPage: React.FC = () => {
 
   const handleReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newReply.trim() || !ticketId || !ticket) return;
+    if (!newReply.trim() || !ticketId || !ticket || !user) return;
 
     setIsReplying(true);
     const payload = { message: newReply, isInternal: isInternalNote };
@@ -28,11 +28,13 @@ const TicketDetailPage: React.FC = () => {
 
     const newEntryObject: ThreadEntry = {
       id: `temp-${Date.now()}`,
-      author: user?.username || 'You',
-      authorRole: activeRole as 'AGENT' | 'CUSTOMER',
-      message: newReply, // Use 'message' to match the updated interface
+      posterFirstName: 'You', // Optimistic name
+      posterLastName: '',
+      posterId: user.id, // Set current user's ID
+      posterRole: activeRole as string,
+      message: newReply,
       createdAt: new Date().toISOString(),
-      isInternal: isInternalNote,
+      internal: isInternalNote,
     };
 
     setTicket(prev => prev ? ({ ...prev, threadEntries: [...prev.threadEntries, newEntryObject] }) : null);
@@ -65,37 +67,60 @@ const TicketDetailPage: React.FC = () => {
 
   if (loading) return <div className="text-center p-8">Loading ticket details...</div>;
   if (error) return <div className="text-center text-red-500 p-8">{error}</div>;
-  if (!ticket) return <div className="text-center p-8">Ticket not found.</div>;
+  if (!ticket || !user) return <div className="text-center p-8">Ticket not found or user not loaded.</div>;
 
   console.log("Entries to render:", ticket.threadEntries);
 
   const renderThreadEntry = (entry: ThreadEntry, index: number) => {
-    const isAgent = entry.authorRole === 'AGENT';
-    let bubbleClasses = 'self-start text-left ';
+    // Calculate if the message is from the current user
+    const isMe = entry.posterId === user.id;
 
-    if (entry.isInternal) {
-      bubbleClasses += 'bg-yellow-100/50 dark:bg-yellow-900/30 border-l-4 border-yellow-400';
-    } else if (isAgent) {
-      bubbleClasses = 'bg-blue-100 dark:bg-blue-900/50 self-end text-right';
+    const effectiveRole = entry.posterRole;
+    const isAdmin = effectiveRole === 'ADMIN';
+
+    let bubbleClasses = '';
+    let containerClasses = `flex flex-col w-full ${isMe ? 'items-end' : 'items-start'}`;
+
+    if (isMe) {
+      bubbleClasses = 'bg-blue-600 text-white self-end text-right ml-auto';
+    } else if (entry.internal) {
+      bubbleClasses = 'bg-yellow-100/50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 self-start text-left mr-auto text-text-main';
     } else {
-      bubbleClasses += 'bg-gray-100 dark:bg-slate-700';
+      bubbleClasses = 'bg-slate-100 dark:bg-slate-700 self-start text-left mr-auto text-text-main';
     }
 
     return (
-      <div key={`${entry.id}-${index}`} className={`flex flex-col w-full ${isAgent && !entry.isInternal ? 'items-end' : 'items-start'}`}>
-        <div className={`p-4 rounded-lg mb-4 max-w-2xl ${bubbleClasses}`}>
-          <div className="flex items-center mb-2">
-            <span className="font-bold text-sm text-text-main">{entry.author}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 mx-2">({formatBackendDate(entry.createdAt as any)})</span>
-            {entry.isInternal && (
-              <span className="flex items-center text-xs text-yellow-700 dark:text-yellow-300 bg-yellow-200/50 dark:bg-yellow-800/50 px-2 py-0.5 rounded-full">
-                <Lock size={12} className="mr-1" />
-                Internal Note
+      <div key={`${entry.id}-${index}`} className={containerClasses}>
+        {/* Name and badge above the bubble for everyone */}
+        <div className={`flex items-center mb-1 ${isMe ? 'mr-1 justify-end' : 'ml-1'}`}>
+          <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
+            {/* User Icon for everyone */}
+            <UserIcon size={12} className={`mr-1 ${isMe ? 'ml-2 order-last' : ''}`} />
+            {isMe ? 'You' : `${entry.posterFirstName} ${entry.posterLastName}`}
+
+            {isAdmin && (
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 ${isMe ? 'mr-2 order-first' : 'ml-2'}`}>
+                <ShieldCheck size={10} className="mr-1" />
+                Staff
               </span>
             )}
+
+            {!isMe && entry.internal && (
+              <span className="ml-2 flex items-center text-xs text-yellow-700 dark:text-yellow-400">
+                <Lock size={10} className="mr-1" />
+                Internal
+              </span>
+            )}
+          </span>
+        </div>
+
+        <div className={`p-4 rounded-xl mb-4 max-w-2xl ${bubbleClasses}`}>
+          <p className="whitespace-pre-wrap">{entry.message || (entry as any).content}</p>
+
+          {/* Timestamp inside bubble, right-aligned for "Me", left for "Others" */}
+          <div className={`mt-2 text-[10px] ${isMe ? 'text-blue-200 text-right' : 'text-slate-400 dark:text-slate-500 text-left'}`}>
+            {formatBackendDate(entry.createdAt as any)}
           </div>
-          {/* Use entry.message with a fallback to entry.content (which was the old name, just in case) */}
-          <p className="text-text-main whitespace-pre-wrap">{entry.message || (entry as any).content}</p>
         </div>
       </div>
     );
@@ -116,12 +141,17 @@ const TicketDetailPage: React.FC = () => {
 
         <div ref={scrollRef} className="flex-1 p-6 space-y-6 overflow-y-auto max-h-[600px]">
           <div className="flex flex-col w-full items-start">
-            <div className="p-4 rounded-lg mb-4 max-w-2xl bg-slate-50 dark:bg-slate-800/50 self-start text-left">
-              <div className="flex items-center mb-2">
-                <span className="font-bold text-sm text-gray-800 dark:text-gray-300">{ticket.customerName} (Initial Request)</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({formatBackendDate(ticket.createdAt as any)})</span>
+            <div className="flex items-center mb-1 ml-1">
+              <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
+                 <UserIcon size={12} className="mr-1" />
+                 {ticket.customerName} (Initial Request)
+              </span>
+            </div>
+            <div className="p-4 rounded-xl mb-4 max-w-2xl bg-slate-50 dark:bg-slate-800/50 self-start text-left mr-auto text-text-main">
+              <p className="whitespace-pre-wrap">{ticket.description}</p>
+              <div className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-left">
+                {formatBackendDate(ticket.createdAt as any)}
               </div>
-              <p className="text-text-main whitespace-pre-wrap">{ticket.description}</p>
             </div>
           </div>
           {ticket?.threadEntries?.map(renderThreadEntry)}

@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 
 export interface ThreadEntry {
   id: string;
-  author: string;
-  authorRole: 'AGENT' | 'CUSTOMER';
-  message: string; // Changed from content to message
+  posterFirstName: string;
+  posterLastName: string;
+  posterId: number; // Add posterId
+  posterRole?: string;
+  message: string;
   createdAt: string;
-  isInternal: boolean;
+  internal: boolean;
 }
 
 export interface TicketDetails {
