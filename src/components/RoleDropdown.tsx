@@ -1,43 +1,82 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { ChevronDown, Check } from 'lucide-react';
+import axiosClient from '@/api/axiosClient';
 
 const RoleDropdown: React.FC = () => {
-  const { user, activeRole, setActiveRole } = useAuth();
+  const { user, activeRole, setActiveRole, updateLocalRole } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = event.target.value;
-    if (newRole) {
+  const handleRoleSelect = (newRole: string) => {
+    if (newRole !== activeRole) {
       setActiveRole(newRole);
       toast.success(`Role switched to ${newRole}`);
-      // In a real application with a data fetching library like React Query,
-      // you would invalidate queries here to refetch data for the new role.
-      // e.g., queryClient.invalidateQueries();
+    }
+    setIsOpen(false);
+  };
+
+  const handleSetAsDefault = async () => {
+    if (!activeRole) return;
+    try {
+      // The updateLocalRole function in AuthContext already handles this PATCH request.
+      await updateLocalRole(activeRole);
+      toast.success(`Set ${activeRole} as your default role.`);
+    } catch (error) {
+      console.error('Failed to set default role:', error);
+      toast.error('Failed to save default role preference.');
     }
   };
 
   if (!user || !user.roles || user.roles.length <= 1) {
-    return null; // Don't show the dropdown if there's only one role or user is not loaded
+    return (
+      <div className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md">
+        {activeRole}
+      </div>
+    );
   }
 
   return (
     <div className="relative">
-      <select
-        value={activeRole || ''}
-        onChange={handleRoleChange}
-        className="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-40 px-3 py-2 text-sm font-medium text-left text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-brand"
       >
-        {user.roles.map((role) => (
-          <option key={role} value={role}>
-            {role}
-          </option>
-        ))}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-        </svg>
-      </div>
+        <span>{activeRole}</span>
+        <ChevronDown size={16} className="ml-2 -mr-1" />
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute right-0 mt-2 w-56 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg dark:bg-slate-800 dark:divide-slate-700 ring-1 ring-black ring-opacity-5 focus:outline-none"
+          role="menu"
+          aria-orientation="vertical"
+        >
+          <div className="px-4 py-3 text-xs text-gray-500 uppercase">Available Roles</div>
+          <div className="py-1" role="none">
+            {user.roles.map((role) => (
+              <button
+                key={role}
+                onClick={() => handleRoleSelect(role)}
+                className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700"
+                role="menuitem"
+              >
+                <span>{role}</span>
+                {role === activeRole && <Check size={16} className="text-green-500" />}
+              </button>
+            ))}
+          </div>
+          <div className="py-1" role="none">
+            <button
+              onClick={handleSetAsDefault}
+              className="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700"
+              role="menuitem"
+            >
+              Set Current as Default
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

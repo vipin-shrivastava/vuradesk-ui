@@ -1,8 +1,9 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState, ReactNode, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, Search, User, Sun, Moon, LogOut, LayoutDashboard, Ticket, Users, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import RoleDropdown from './RoleDropdown';
 import Tooltip from './Tooltip';
 import logo from '@/assets/logo.png';
@@ -11,46 +12,61 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Tickets', href: '/tickets', icon: Ticket },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
-];
-
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, activeRole } = useAuth(); // Get activeRole
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { settings } = useSystemSettings();
   const location = useLocation();
+
+  // Dynamically generate navigation based on role
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: true },
+    {
+      name: activeRole === 'CUSTOMER' ? 'My Tickets' : 'All Tickets',
+      href: '/tickets',
+      icon: Ticket,
+      visible: true
+    },
+    { name: 'Customers', href: '/customers', icon: Users, visible: activeRole !== 'CUSTOMER' },
+    { name: 'Settings', href: '/settings', icon: Settings, visible: activeRole === 'ADMIN' },
+  ];
+
+  useEffect(() => {
+    const font = settings.primaryFont || 'Inter';
+    if (font !== 'Inter') {
+      const link = document.createElement('link');
+      link.href = `https://fonts.googleapis.com/css2?family=${font.replace(' ', '+')}:wght@400;500;600;700&display=swap`;
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+    document.documentElement.style.setProperty('--font-family', `${font}, sans-serif`);
+  }, [settings.primaryFont]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-background-main text-text-main">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#f8fafc] dark:bg-background-main text-text-main" style={{ fontFamily: 'var(--font-family)' }}>
       <aside
         className={`bg-sidebar-bg shadow-lg transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? 'w-20' : 'w-64'} flex flex-col relative`}
       >
-        {/* Sidebar Top: Logo and Toggle */}
         <div className="flex items-center justify-center h-16 border-b border-card-border px-4">
           <button onClick={toggleSidebar} className="flex items-center justify-center w-full">
             <img
               src={logo}
-              alt="VuraDesk Logo"
+              alt={`${settings.appName} Logo`}
               className={`transition-all duration-300 ease-in-out
                 ${isSidebarCollapsed ? 'h-10 w-10 object-cover rounded-md aspect-square mx-auto' : 'h-10 w-auto'}`}
             />
           </button>
         </div>
 
-        {/* Sidebar Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-2">
-          {navigation.map((item) => {
+          {navigation.filter(item => item.visible).map((item) => {
             const isActive = location.pathname.startsWith(item.href);
             return (
               <Tooltip key={item.name} text={item.name}>
@@ -69,13 +85,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             );
           })}
         </nav>
+
+        <div className="p-4 border-t border-card-border">
+          <div className={`flex items-center justify-center ${isSidebarCollapsed ? 'h-6' : ''}`}>
+            {!isSidebarCollapsed && (
+              <span className="text-xs text-slate-400">
+                Powered by <strong>{settings.appName}</strong>
+              </span>
+            )}
+          </div>
+        </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
         <header className="bg-sidebar-bg shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
-          {/* Left: Expanding Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
@@ -86,7 +109,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             />
           </div>
 
-          {/* Right: User Actions */}
           <div className="flex items-center space-x-2">
             <button
               onClick={toggleDarkMode}
@@ -118,7 +140,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-auto">
           <div className="p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
             {children}

@@ -4,7 +4,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import SelectRolePage from './pages/SelectRolePage';
 import TicketListPage from './pages/tickets/TicketListPage';
-import TicketDetailPage from './pages/tickets/TicketDetailPage'; // Import TicketDetailPage
+import TicketDetailPage from './pages/tickets/TicketDetailPage';
+import SettingsPage from './pages/SettingsPage'; // Import SettingsPage
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/MainLayout';
 import './App.css';
@@ -48,7 +49,7 @@ function App() {
         }
       />
       <Route
-        path="/tickets/:ticketId" // Add dynamic route for ticket details
+        path="/tickets/:ticketId"
         element={
           <ProtectedRoute>
             <MainLayout>
@@ -57,7 +58,16 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* Add other layout-wrapped routes here, e.g., /settings */}
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SettingsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

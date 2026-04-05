@@ -2,7 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext'; // Import ThemeProvider
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { SystemSettingsProvider } from '@/contexts/SystemSettingsContext'; // Import SystemSettingsProvider
 import './index.css';
 import App from './App.tsx';
 
@@ -10,9 +11,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider> {/* Wrap App with ThemeProvider */}
-          <App />
-        </ThemeProvider>
+        <SystemSettingsProvider> {/* Wrap with SystemSettingsProvider */}
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </SystemSettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

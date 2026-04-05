@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, Pen, FileText, Loader2 } from 'lucide-react';
 
 interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTicketCreated: () => void; // This will be our refetch function
+  onTicketCreated: () => void;
 }
+
+const priorities = [
+  { level: 'LOW', color: 'bg-green-500', label: 'Low' },
+  { level: 'MEDIUM', color: 'bg-blue-500', label: 'Medium' },
+  { level: 'HIGH', color: 'bg-orange-500', label: 'High' },
+  { level: 'URGENT', color: 'bg-red-500', label: 'Urgent' },
+];
 
 const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, onTicketCreated }) => {
   const [subject, setSubject] = useState('');
@@ -18,18 +25,11 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      await axiosClient.post('/tickets', {
-        subject,
-        description,
-        priority,
-        status: 'OPEN', // Explicitly set the status on creation
-      });
+      await axiosClient.post('/tickets', { subject, description, priority, status: 'OPEN' });
       toast.success('Ticket created successfully!');
-      onTicketCreated(); // Trigger the refetch in the parent component
-      onClose(); // Close the modal
-      // Reset form for next time
+      onTicketCreated();
+      onClose();
       setSubject('');
       setDescription('');
       setPriority('MEDIUM');
@@ -41,67 +41,80 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
-      <div className="bg-card-bg rounded-lg shadow-xl p-6 w-full max-w-lg border border-card-border relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
-          <X size={24} />
-        </button>
-        <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--primary-brand)' }}>
-          Create New Ticket
-        </h2>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="bg-card-bg rounded-lg shadow-xl w-full max-w-2xl flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-card-border">
+          <h2 className="text-lg font-semibold text-text-main">Create New Ticket</h2>
+          <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Form */}
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="subject" className="block text-sm font-medium text-text-main mb-1">Subject</label>
-            <input
-              id="subject"
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-brand dark:bg-gray-800 dark:border-gray-700"
-              required
-            />
+          <div className="p-6 space-y-6">
+            <div>
+              <label htmlFor="subject" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</label>
+              <div className="relative mt-1">
+                <Pen className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  id="subject"
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="description" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</label>
+              <div className="relative mt-1">
+                <FileText className="absolute left-3 top-3 text-slate-400" size={16} />
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={5}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Priority</label>
+              <div className="mt-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex space-x-1">
+                {priorities.map(({ level, color, label }) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => setPriority(level)}
+                    className={`flex-1 text-center px-3 py-1 rounded-md text-sm font-semibold transition-all duration-200
+                      ${priority === level ? `text-white shadow ${color}` : 'text-slate-600 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-text-main mb-1">Description</label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-brand dark:bg-gray-800 dark:border-gray-700"
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label htmlFor="priority" className="block text-sm font-medium text-text-main mb-1">Priority</label>
-            <select
-              id="priority"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-brand dark:bg-gray-800 dark:border-gray-700"
-            >
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-          </div>
-          <div className="flex justify-end space-x-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+
+          {/* Footer */}
+          <div className="bg-slate-50/50 dark:bg-slate-800/50 p-4 flex justify-end space-x-4 border-t border-card-border">
+            <button type="button" onClick={onClose} className="px-6 py-2 rounded-md text-sm font-semibold text-slate-700 bg-white dark:bg-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600">
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 rounded-md text-sm font-medium text-white disabled:opacity-50"
-              style={{ backgroundColor: 'var(--primary-brand)' }}
+              className="flex items-center justify-center px-6 py-2 rounded-md text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating...' : 'Create Ticket'}
+              {isLoading && <Loader2 className="animate-spin mr-2" size={18} />}
+              Create Ticket
             </button>
           </div>
         </form>

@@ -3,23 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
 
-export interface TicketReply {
+export interface ThreadEntry {
   id: string;
   author: string;
   authorRole: 'AGENT' | 'CUSTOMER';
-  content: string;
+  message: string; // Changed from content to message
   createdAt: string;
+  isInternal: boolean;
 }
 
 export interface TicketDetails {
   id: string;
   subject: string;
-  description: string; // Add description
-  customerName: string; // Add customer name
+  description: string;
+  customerName: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   createdAt: string;
-  replies: TicketReply[];
+  threadEntries: ThreadEntry[];
 }
 
 export const useTicket = (ticketId?: string) => {
@@ -65,5 +66,5 @@ export const useTicket = (ticketId?: string) => {
     fetchTicket();
   }, [fetchTicket]);
 
-  return { ticket, loading, error, refetch: fetchTicket };
+  return { ticket, loading, error, refetch: fetchTicket, setTicket };
 };
