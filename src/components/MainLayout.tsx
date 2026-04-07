@@ -47,6 +47,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  const getUserInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName && !lastName) return 'UN';
+    return `${firstName ? firstName.charAt(0) : ''}${lastName ? lastName.charAt(0) : ''}`.toUpperCase();
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-text-main transition-colors duration-300" style={{ fontFamily: 'var(--font-family)' }}>
       <aside
@@ -118,7 +123,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <RoleDropdown />
             <div className="relative">
               <button onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)} className="flex items-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
-                <User className="h-6 w-6" />
+                {user?.profilePicture ? (
+                  <img src={user.profilePicture} alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-primary-brand flex items-center justify-center text-white text-sm font-semibold">
+                    {getUserInitials(user?.firstName, user?.lastName)}
+                  </div>
+                )}
               </button>
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-2 z-10 border border-card-border">

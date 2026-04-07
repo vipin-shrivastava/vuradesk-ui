@@ -1,5 +1,5 @@
 import React, { useState, KeyboardEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'; // Lucide icons
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -150,9 +150,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           />
           <Label htmlFor="remember-me" className="text-slate-700 text-sm font-medium cursor-pointer">Remember me</Label> {/* Label text-sm */}
         </div>
-        <a href="#" className="text-uv-blue hover:text-uv-blue-hover text-sm font-medium"> {/* Link text-sm */}
+        <Link to="/forgot-password" className="text-uv-blue hover:text-uv-blue-hover text-sm font-medium"> {/* Link text-sm */}
           Forgot Password?
-        </a>
+        </Link>
       </div>
 
       {/* Error Message */}
