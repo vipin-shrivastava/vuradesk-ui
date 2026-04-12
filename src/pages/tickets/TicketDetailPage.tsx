@@ -20,17 +20,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface Agent {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
 }
 
 // Helper function to get initials for the avatar
-const getInitials = (firstName?: string, lastName?: string, fallback?: string) => {
-  if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase();
-  if (firstName) return firstName[0].toUpperCase();
-  if (lastName) return lastName[0].toUpperCase();
-  if (fallback) return fallback[0].toUpperCase();
-  return '?';
+const getInitials = (fullName?: string) => {
+  if (!fullName) return '?';
+  const names = fullName.split(' ');
+  if (names.length > 1) {
+    return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+  }
+  return fullName[0].toUpperCase();
 };
 
 const TicketDetailPage: React.FC = () => {
@@ -46,20 +46,23 @@ const TicketDetailPage: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>("unassigned"); // Default to "unassigned"
   const [isAssigning, setIsAssigning] = useState(false);
+  const [agentsLoading, setAgentsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollRef = useAutoScroll(ticket?.threadEntries);
 
   useEffect(() => {
     const fetchAgents = async () => {
+      setAgentsLoading(true);
       try {
-        const response = await axiosClient.get('/users/agents-admins'); // Assuming this endpoint exists
+        const response = await axiosClient.get('/users/agents-admins');
         setAgents(response.data);
       } catch (err) {
         console.error('Failed to fetch agents:', err);
         toast.error('Failed to load agents for assignment.');
+      } finally {
+        setAgentsLoading(false);
       }
     };
 
@@ -67,14 +70,6 @@ const TicketDetailPage: React.FC = () => {
       fetchAgents();
     }
   }, [activeRole]);
-
-  useEffect(() => {
-    if (ticket?.assignedAgentId) {
-      setSelectedAssigneeId(ticket.assignedAgentId);
-    } else {
-      setSelectedAssigneeId("unassigned"); // Set to "unassigned" if no agent is assigned
-    }
-  }, [ticket?.assignedAgentId]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -119,7 +114,6 @@ const TicketDetailPage: React.FC = () => {
     setIsReplying(true);
     let attachmentIds: string[] = [];
 
-    // Step A: Upload attachments
     if (selectedFiles.length > 0) {
       toast.info('Uploading attachments...');
       try {
@@ -129,29 +123,23 @@ const TicketDetailPage: React.FC = () => {
           const response = await axiosClient.post('/attachments/upload', fileData, {
             headers: { 'Content-Type': 'multipart/form-data' },
           });
-          // LOG THIS TO BE 100% SURE
-          console.log("Raw Server Response:", response.data);
-          // Safe catch: object with id, object with uuid, or raw string
           return response.data.id || response.data.uuid || response.data;
         });
         attachmentIds = await Promise.all(uploadPromises);
-        console.log("Captured IDs:", attachmentIds); // Added console log
       } catch (uploadError) {
         console.error('Failed to upload one or more attachments:', uploadError);
         toast.error('Failed to upload attachments. Reply cancelled.');
         setIsReplying(false);
-        return; // Stop submission if uploads fails
+        return;
       }
     }
 
-    // Step B: Submit Reply with attachment IDs
     const payload = {
       message: newReply,
       internal: isInternalNote,
-      attachmentIds: attachmentIds, // Send the array of UUIDs
+      attachmentIds: attachmentIds,
     };
 
-    // Optimistic update (might not show actual attachments until refresh)
     const tempId = `temp-${Date.now()}`;
     const newEntryObject: ThreadEntry = {
       id: tempId,
@@ -162,7 +150,7 @@ const TicketDetailPage: React.FC = () => {
       message: newReply,
       createdAt: new Date().toISOString(),
       internal: isInternalNote,
-      attachments: [], // Cannot easily optimistic-update attachments without full DTOs
+      attachments: [],
     };
 
     setTicket(prev => prev ? ({ ...prev, threadEntries: [...prev.threadEntries, newEntryObject] }) : null);
@@ -188,7 +176,7 @@ const TicketDetailPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to submit reply:', err);
       toast.error('Failed to submit reply. Please try again.');
-      setTicket(ticket); // Rollback
+      setTicket(ticket);
     } finally {
       setIsReplying(false);
     }
@@ -215,14 +203,14 @@ const TicketDetailPage: React.FC = () => {
 
     setIsAssigning(true);
     try {
-      const userIdToSend = value === "unassigned" ? null : value; // Convert "unassigned" to null for backend
+      const userIdToSend = value === "unassigned" ? null : value;
       const response = await axiosClient.patch(`/tickets/${ticketId}/assign`, { userId: userIdToSend });
-      setTicket(prev => prev ? { ...prev, assignedAgentId: response.data.assignedAgentId, assignedAgentFirstName: response.data.assignedAgentFirstName, assignedAgentLastName: response.data.assignedAgentLastName } : null);
-      setSelectedAssigneeId(value); // Keep "unassigned" in local state for display
+      setTicket(prev => prev ? { ...prev, ...response.data } : null);
       if (value === "unassigned") {
         toast.success('Ticket unassigned successfully!');
       } else {
-        toast.success(`Ticket assigned to ${response.data.assignedAgentFirstName} ${response.data.assignedAgentLastName}`);
+        const agent = agents.find(a => a.id === value);
+        toast.success(`Ticket assigned to ${agent?.fullName}`);
       }
     } catch (err) {
       console.error('Failed to assign agent:', err);
@@ -253,14 +241,11 @@ const TicketDetailPage: React.FC = () => {
   const handleDownloadAll = async (entryId?: string) => {
     if (!ticketId || isDownloadingAll) return;
 
-    // Enforcement: Throw an error if called from a reply but entryId is missing or is an event
     if (entryId && typeof entryId !== 'string' && typeof entryId !== 'number') {
         console.error("handleDownloadAll received an invalid entryId (likely an event object). Expected string or undefined. Received:", entryId);
         toast.error("An error occurred preparing the download.");
         return;
     }
-
-    console.log("Downloading for Thread:", entryId);
 
     setIsDownloadingAll(true);
     toast.info('Preparing your download...');
@@ -295,7 +280,7 @@ const TicketDetailPage: React.FC = () => {
     <div key={attachment.id} className="relative group w-32 h-32 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 cursor-pointer" onClick={() => attachment.fileType && attachment.fileType.startsWith('image/') ? setSelectedImage(attachment) : handleDownload(attachment)}>
       {attachment.fileType && attachment.fileType.startsWith('image/') ? (
         <SecureImage
-          id={attachment.id} // Added id parameter
+          id={attachment.id}
           src={attachment.downloadUrl}
           alt={attachment.fileName}
           className="w-full h-full object-cover"
@@ -333,11 +318,9 @@ const TicketDetailPage: React.FC = () => {
     const hasText = entry.message && entry.message.trim().length > 0;
     const hasAttachments = entry.attachments && entry.attachments.length > 0;
 
-    // Base classes for the bubble, removed fixed max-w and heavy bg if only attachments
     let bubbleClasses = 'p-3 rounded-xl mb-1 ';
 
     if (isMe) {
-       // Only apply the blue background if there is actual text
       bubbleClasses += hasText ? 'bg-blue-600/90 text-white shadow-sm' : 'bg-transparent text-white p-0';
     } else if (entry.internal) {
       bubbleClasses += hasText ? 'bg-yellow-100/50 dark:bg-slate-900 border-l-4 border-yellow-400 dark:border-slate-800 text-text-main shadow-sm' : 'bg-transparent p-0 text-text-main';
@@ -345,15 +328,13 @@ const TicketDetailPage: React.FC = () => {
       bubbleClasses += hasText ? 'bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-800 text-text-main shadow-sm' : 'bg-transparent p-0 text-text-main';
     }
 
-    const displayName = isMe ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'You' : `${entry.posterFirstName || ''} ${entry.posterLastName || ''}`.trim() || entry.author || 'User';
-    const avatarInitials = getInitials(isMe ? user.firstName : entry.posterFirstName, isMe ? user.lastName : entry.lastName, entry.author || 'User');
-    // Basic color generation based on initials for some variety if not me
+    const displayName = isMe ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'You' : `${entry.posterFirstName || ''} ${entry.posterLastName || ''}`.trim() || 'User';
+    const avatarInitials = getInitials(displayName);
     const avatarColor = isMe ? 'bg-blue-600 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
 
     return (
       <div key={`${entry.id}-${index}`} className={containerClasses}>
         <div className={`flex items-center mb-1 ${isMe ? 'mr-1 justify-end flex-row-reverse' : 'ml-1 flex-row'}`}>
-           {/* Avatar */}
            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${avatarColor} ${isMe ? 'ml-2' : 'mr-2'}`}>
               {avatarInitials}
            </div>
@@ -384,14 +365,12 @@ const TicketDetailPage: React.FC = () => {
           </span>
         </div>
 
-        {/* Text Bubble */}
         {hasText && (
           <div className={`w-fit max-w-[80%] ${bubbleClasses}`}>
             <p className="whitespace-pre-wrap">{entry.message || (entry as any).content}</p>
           </div>
         )}
 
-        {/* Gallery Grid */}
         {hasAttachments && (
           <div className={`w-fit max-w-[80%] ${!hasText ? 'mt-0' : 'mt-1'}`}>
              <div className={`grid ${entry.attachments!.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-1 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800`}>
@@ -427,9 +406,7 @@ const TicketDetailPage: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-64px)] overflow-hidden w-full flex">
-      {/* Main Content (Left) */}
       <div className="flex-1 flex flex-col bg-card-bg shadow-sm border-r border-card-border overflow-hidden">
-        {/* Header */}
         <div className="p-3 border-b border-card-border shrink-0 flex items-center justify-between">
           <div className="flex items-center">
              <Link to="/tickets" className="flex items-center text-sm text-gray-500 hover:text-primary-brand mr-4">
@@ -474,12 +451,11 @@ const TicketDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Thread (Scrollable) */}
         <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto flex flex-col space-y-6 w-full">
           <div className="flex flex-col w-full items-start mb-4">
             <div className="flex items-center mb-1 ml-1">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300 mr-2">
-                 {getInitials(undefined, undefined, ticket.customerName)}
+                 {getInitials(ticket.customerName)}
               </div>
               <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
                  {ticket.customerName} (Initial Request)
@@ -516,7 +492,6 @@ const TicketDetailPage: React.FC = () => {
              <div key={`${entry.id}-${idx}`} className="w-full flex justify-center">
                <div className="w-full max-w-5xl">
                  {renderThreadEntry(entry, idx)}
-                 {/* Timestamp extracted from renderThreadEntry to be right under the entire block */}
                  <div className={`flex ${entry.posterId === user?.id ? 'justify-end' : 'justify-start'} w-full`}>
                    <div className="text-[10px] text-slate-400 dark:text-slate-500 mx-1">
                       {formatBackendDate(entry.createdAt as any)}
@@ -527,7 +502,6 @@ const TicketDetailPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Reply Box (Fixed at bottom) */}
         <div
           className={`p-4 border-t bg-background-main shrink-0 transition-colors ${isInternalNote ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''}`}
           onDrop={handleDrop}
@@ -587,7 +561,6 @@ const TicketDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Sidebar for Metadata */}
       <aside className="w-64 bg-card-bg shadow-sm border-l border-card-border p-6 shrink-0 h-full overflow-y-auto">
         <h3 className="text-lg font-semibold mb-4 border-b border-card-border pb-2">Ticket Details</h3>
         <div className="space-y-4 text-sm">
@@ -612,42 +585,37 @@ const TicketDetailPage: React.FC = () => {
             <span className="font-semibold text-slate-500 dark:text-slate-500">{formatBackendDate(ticket.createdAt as any)}</span>
           </div>
 
-          {/* Assignee Section */}
           {(activeRole === 'ADMIN' || activeRole === 'AGENT') && (
             <div>
               <label htmlFor="assignee" className="block text-slate-500 dark:text-slate-500 mb-1">Assignee</label>
               <Select
                 onValueChange={handleAssignAgent}
-                value={selectedAssigneeId || "unassigned"}
-                disabled={isAssigning || agents.length === 0} // Disable if no agents
+                value={ticket.assignedAgentId || "unassigned"}
+                disabled={isAssigning || agentsLoading}
               >
                 <SelectTrigger id="assignee" className="w-full bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700">
-                  <SelectValue placeholder={agents.length === 0 ? "No Agents Available" : "Unassigned"}>
-                    {selectedAssigneeId && selectedAssigneeId !== "unassigned" ? (
-                      agents.find(a => a.id === selectedAssigneeId)?.firstName + " " + agents.find(a => a.id === selectedAssigneeId)?.lastName
-                    ) : (
-                      agents.length === 0 ? "No Agents Available" : "Unassigned"
-                    )}
+                  <SelectValue placeholder={agentsLoading ? "Loading..." : "Unassigned"}>
+                    {ticket.assignedAgentName || (agentsLoading ? "Loading..." : "Unassigned")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-slate-800">
-                  {agents.length > 0 && <SelectItem value="unassigned">Unassigned</SelectItem>}
-                  {agents.filter(a => a.id).map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id.toString()}>
-                      {agent.firstName} {agent.lastName}
-                    </SelectItem>
-                  ))}
+                  {!agentsLoading && (
+                    <>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {agents.filter(a => a.id).map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id.toString()}>
+                          {agent.id === user.id ? `${agent.fullName} (You)` : agent.fullName}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
-              {agents.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">No agents available to assign.</p>
-              )}
             </div>
           )}
         </div>
       </aside>
 
-      {/* Lightbox Modal */}
       {selectedImage && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={() => setSelectedImage(null)}>
           <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>

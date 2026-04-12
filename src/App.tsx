@@ -58,6 +58,16 @@ function App() {
         }
       />
       <Route
+        path="/my-tickets"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <TicketListPage filter="my-tickets" />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/tickets/:ticketId"
         element={
           <ProtectedRoute>

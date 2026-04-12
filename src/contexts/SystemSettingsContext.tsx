@@ -6,7 +6,8 @@ export interface SystemSettings {
   primaryFont: string;
   logoUrl?: string;
   loginTagline?: string;
-  footerText?: string; // Add footerText
+  footerText?: string;
+  autoAssignmentEnabled?: boolean;
 }
 
 interface SystemSettingsContextType {
@@ -20,7 +21,8 @@ const defaultSettings: SystemSettings = {
   primaryFont: 'Inter',
   logoUrl: '/src/assets/logo.png',
   loginTagline: 'Your ultimate solution for seamless customer support.',
-  footerText: 'Powered by VuraDesk', // Add default
+  footerText: 'Powered by VuraDesk',
+  autoAssignmentEnabled: true,
 };
 
 const SystemSettingsContext = createContext<SystemSettingsContextType | undefined>(undefined);
@@ -38,7 +40,6 @@ export const SystemSettingsProvider: React.FC<{ children: ReactNode }> = ({ chil
 
   const fetchSystemSettings = useCallback(async () => {
     const url = '/system/public/settings';
-    console.log("UI Requesting path:", url);
     try {
       const response = await axiosClient.get(url);
       if (response.data) {
@@ -53,14 +54,9 @@ export const SystemSettingsProvider: React.FC<{ children: ReactNode }> = ({ chil
   const saveSystemSettings = async (newSettings: Partial<SystemSettings>) => {
     const url = '/system/admin/settings';
     const payload = {
-      appName: newSettings.appName ?? settings.appName,
-      loginTagline: newSettings.loginTagline ?? settings.loginTagline,
-      primaryFont: newSettings.primaryFont ?? settings.primaryFont,
-      logoUrl: newSettings.logoUrl ?? settings.logoUrl,
-      footerText: newSettings.footerText ?? settings.footerText,
+      ...settings,
+      ...newSettings,
     };
-    console.log("UI Requesting path:", url);
-    console.log("Final Payload to Backend:", payload);
     const previousSettings = settings;
     setSettings(prev => ({ ...prev, ...payload }));
     try {

@@ -8,20 +8,30 @@ export interface Ticket {
   status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   createdAt: string;
+  assignedAgentName?: string;
+  department?: string;
 }
 
-export const useTickets = () => {
-  const { activeRole } = useAuth();
+export interface TicketFilters {
+  departmentId?: string;
+  status?: string;
+  priority?: string;
+  sort?: string;
+  dir?: 'asc' | 'desc';
+}
+
+export const useTickets = (filter?: 'my-tickets', initialFilters?: TicketFilters) => {
+  const { user, activeRole } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<TicketFilters>(initialFilters || {});
 
-  // Pagination state
-  const [page, setPage] = useState(0); // Spring Data JPA pages are 0-indexed
+  const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  const fetchTickets = useCallback(async (pageToFetch = 0) => {
+  const fetchTickets = useCallback(async (pageToFetch = 0, currentFilters = filters) => {
     if (!activeRole) {
       setLoading(false);
       return;
@@ -30,12 +40,21 @@ export const useTickets = () => {
     setLoading(true);
     setError(null);
     try {
-      // Pass the page number as a query parameter
-      const response = await axiosClient.get('/tickets', {
-        params: { page: pageToFetch, size: 10 }, // Assuming a page size of 10
+      let url = '/tickets';
+      const params: any = { page: pageToFetch, size: 10 };
+
+      Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value && value !== 'ALL') {
+          params[key] = value;
+        }
       });
 
-      // Update state with paginated data
+      if (filter === 'my-tickets' && user?.id) {
+        url = `/tickets/assigned/${user.id}`;
+      }
+
+      const response = await axiosClient.get(url, { params });
+
       setTickets(response.data.content || []);
       setTotalPages(response.data.totalPages || 0);
       setTotalElements(response.data.totalElements || 0);
@@ -47,12 +66,11 @@ export const useTickets = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeRole]);
+  }, [activeRole, filter, user?.id, filters]);
 
   useEffect(() => {
-    // Fetch tickets when the component mounts or when the activeRole changes
-    fetchTickets(0); // Reset to first page on role change
-  }, [activeRole]); // Only depend on activeRole for re-fetching from page 0
+    fetchTickets(0, filters);
+  }, [activeRole, filter, filters]);
 
   const goToPage = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
@@ -60,16 +78,24 @@ export const useTickets = () => {
     }
   };
 
+  const applyFilters = (newFilters: Partial<TicketFilters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    fetchTickets(0, updatedFilters);
+  };
+
   return {
     tickets,
     loading,
     error,
-    refetch: () => fetchTickets(page), // Refetch the current page
+    refetch: () => fetchTickets(page),
     pagination: {
       page,
       totalPages,
       totalElements,
       goToPage,
-    }
+    },
+    applyFilters,
+    filters,
   };
 };

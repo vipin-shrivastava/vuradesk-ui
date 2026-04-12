@@ -5,12 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import EmailSettings from './settings/EmailSettings';
 import axiosClient from '@/api/axiosClient';
+import { Switch } from '@/components/ui/switch';
 
 type SettingsTab = 'general' | 'appearance' | 'security' | 'email';
 
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
-  const { settings, saveSystemSettings } = useSystemSettings();
+  const { settings, saveSystemSettings, fetchSystemSettings } = useSystemSettings();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { activeRole } = useAuth();
 
@@ -19,6 +20,7 @@ const SettingsPage: React.FC = () => {
   const [primaryFont, setPrimaryFont] = useState(settings.primaryFont);
   const [loginTagline, setLoginTagline] = useState(settings.loginTagline || '');
   const [footerText, setFooterText] = useState(settings.footerText || '');
+  const [autoAssignmentEnabled, setAutoAssignmentEnabled] = useState(settings.autoAssignmentEnabled || false);
 
   // Email Settings State
   const [smtpHost, setSmtpHost] = useState('');
@@ -32,6 +34,7 @@ const SettingsPage: React.FC = () => {
     setPrimaryFont(settings.primaryFont);
     setLoginTagline(settings.loginTagline || '');
     setFooterText(settings.footerText || '');
+    setAutoAssignmentEnabled(settings.autoAssignmentEnabled || false);
   }, [settings]);
 
   useEffect(() => {
@@ -43,7 +46,7 @@ const SettingsPage: React.FC = () => {
             setSmtpHost(data.host || '');
             setSmtpPort(data.port?.toString() || '');
             setSmtpUsername(data.username || '');
-            setIsPasswordSet(!!data.password); // Check if password is set
+            setIsPasswordSet(!!data.password);
           }
         } catch (error) {
           console.error("Failed to fetch email settings", error);
@@ -55,21 +58,20 @@ const SettingsPage: React.FC = () => {
 
   const handleSaveChanges = async () => {
     try {
-      // Save general settings
-      await saveSystemSettings({ appName, primaryFont, loginTagline, footerText });
+      await saveSystemSettings({ appName, primaryFont, loginTagline, footerText, autoAssignmentEnabled });
 
-      // Save email settings if admin
       if (activeRole === 'ADMIN') {
         const emailPayload = {
           host: smtpHost,
           port: parseInt(smtpPort, 10),
           username: smtpUsername,
-          ...(smtpPassword && { password: smtpPassword }), // Only include password if it has been changed
+          ...(smtpPassword && { password: smtpPassword }),
         };
         await axiosClient.put('/settings/email', emailPayload);
       }
 
       toast.success('Settings saved successfully!');
+      fetchSystemSettings(); // Refetch to get the latest settings
     } catch (error) {
       toast.error('Failed to save settings.');
     }
@@ -119,6 +121,17 @@ const SettingsPage: React.FC = () => {
               Change Logo
             </button>
           </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <label htmlFor="round-robin" className="text-sm font-medium text-text-main">Enable Automatic Round-Robin Assignment</label>
+            <p className="text-xs text-slate-500">When disabled, all new tickets will remain 'Unassigned' until manually picked up by an Admin or Agent.</p>
+          </div>
+          <Switch
+            id="round-robin"
+            checked={autoAssignmentEnabled}
+            onCheckedChange={setAutoAssignmentEnabled}
+          />
         </div>
       </div>
     </div>

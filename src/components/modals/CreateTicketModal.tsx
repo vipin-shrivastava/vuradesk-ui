@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
-import { X, Pen, FileText, Loader2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X, Pen, FileText, Loader2, User } from 'lucide-react';
+import DepartmentSelect from '@/components/forms/DepartmentSelect';
+import { Badge } from '@/components/ui/badge';
 
-interface Department {
+interface Customer {
   id: string;
-  name: string;
+  email: string;
 }
 
 interface CreateTicketModalProps {
@@ -27,39 +28,82 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
   const [departmentId, setDepartmentId] = useState('');
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Customer[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      const fetchDepartments = async () => {
+    if (customerEmail.length > 2) {
+      const fetchSuggestions = async () => {
         try {
-          const response = await axiosClient.get('/public/departments');
-          setDepartments(response.data);
-          if (response.data.length > 0) {
-            setDepartmentId(response.data[0].id); // Set default department
-          }
+          const response = await axiosClient.get(`/users/search?email=${customerEmail}`);
+          setSuggestions(response.data);
+          setShowSuggestions(true);
         } catch (error) {
-          console.error('Failed to fetch departments:', error);
-          toast.error('Failed to load departments.');
+          console.error('Failed to fetch customer suggestions:', error);
         }
       };
-      fetchDepartments();
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-  }, [isOpen]);
+  }, [customerEmail]);
+
+  const handleSuggestionClick = (customer: Customer) => {
+    setCustomerEmail(customer.email);
+    setCustomerId(customer.id);
+    setShowSuggestions(false);
+    setIsNewCustomer(false);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomerEmail(e.target.value);
+    setCustomerId(null);
+    const emailExists = suggestions.some(s => s.email === e.target.value);
+    setIsNewCustomer(!emailExists && e.target.value.length > 0);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!departmentId) {
+      toast.error('Please select a department.');
+      return;
+    }
+    if (!customerEmail) {
+      toast.error('Please enter a customer email.');
+      return;
+    }
     setIsLoading(true);
     try {
-      await axiosClient.post('/tickets', { subject, description, priority, departmentId, status: 'OPEN' });
+      const payload: any = {
+        subject,
+        description,
+        priority,
+        departmentId: Number(departmentId),
+        status: 'OPEN',
+      };
+
+      if (customerId) {
+        payload.customerId = Number(customerId);
+      } else {
+        payload.customerEmail = customerEmail;
+      }
+
+      await axiosClient.post('/tickets', payload);
       toast.success('Ticket created successfully!');
       onTicketCreated();
       onClose();
       setSubject('');
       setDescription('');
       setPriority('MEDIUM');
-      setDepartmentId(''); // Reset departmentId
+      setDepartmentId('');
+      setCustomerEmail('');
+      setCustomerId(null);
+      setIsNewCustomer(false);
     } catch (error) {
       console.error('Failed to create ticket:', error);
       toast.error('Failed to create ticket. Please try again.');
@@ -73,7 +117,6 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div className="bg-card-bg rounded-lg shadow-xl w-full max-w-2xl flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-card-border">
           <h2 className="text-lg font-semibold text-text-main">Create New Ticket</h2>
           <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700">
@@ -81,9 +124,36 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-6">
+            <div className="relative">
+              <label htmlFor="customer-email" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer Email</label>
+              <div className="relative mt-1">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <input
+                  id="customer-email"
+                  type="email"
+                  value={customerEmail}
+                  onChange={handleEmailChange}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700"
+                  required
+                />
+                {isNewCustomer && <Badge className="absolute right-2 top-1/2 -translate-y-1/2">New customer will be created</Badge>}
+              </div>
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md mt-1 shadow-lg">
+                  {suggestions.map(s => (
+                    <li
+                      key={s.id}
+                      onClick={() => handleSuggestionClick(s)}
+                      className="px-4 py-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                    >
+                      {s.email}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <div>
               <label htmlFor="subject" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</label>
               <div className="relative mt-1">
@@ -113,22 +183,7 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
               </div>
             </div>
 
-            {/* Department Dropdown */}
-            <div>
-              <label htmlFor="department" className="text-xs font-bold text-slate-500 uppercase tracking-wider">DEPARTMENT</label>
-              <Select onValueChange={setDepartmentId} value={departmentId}>
-                <SelectTrigger id="department" className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700">
-                  <SelectValue placeholder="Select a department" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-800">
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <DepartmentSelect onValueChange={setDepartmentId} value={departmentId} />
 
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Priority</label>
@@ -148,7 +203,6 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
             </div>
           </div>
 
-          {/* Footer */}
           <div className="bg-slate-50/50 dark:bg-slate-800/50 p-4 flex justify-end space-x-4 border-t border-card-border">
             <button type="button" onClick={onClose} className="px-6 py-2 rounded-md text-sm font-semibold text-slate-700 bg-white dark:bg-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600">
               Cancel

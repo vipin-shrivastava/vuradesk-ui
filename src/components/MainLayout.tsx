@@ -23,10 +23,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: true },
     {
-      name: activeRole === 'CUSTOMER' ? 'My Tickets' : 'All Tickets',
+      name: 'All Tickets',
       href: '/tickets',
       icon: Ticket,
-      visible: true
+      visible: activeRole !== 'CUSTOMER'
+    },
+    {
+      name: 'My Tickets',
+      href: '/my-tickets',
+      icon: Ticket,
+      visible: activeRole !== 'CUSTOMER'
     },
     { name: 'Customers', href: '/customers', icon: Users, visible: activeRole !== 'CUSTOMER' },
     { name: 'Settings', href: '/settings', icon: Settings, visible: activeRole === 'ADMIN' },

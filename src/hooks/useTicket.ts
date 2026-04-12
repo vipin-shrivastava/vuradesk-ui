@@ -3,15 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
 
+export interface Attachment {
+  id: string;
+  fileName: string;
+  fileType: string;
+  downloadUrl: string;
+}
+
 export interface ThreadEntry {
   id: string;
   posterFirstName: string;
   posterLastName: string;
-  posterId: number; // Add posterId
+  posterId: number;
   posterRole?: string;
   message: string;
   createdAt: string;
   internal: boolean;
+  attachments: Attachment[];
 }
 
 export interface TicketDetails {
@@ -19,10 +27,14 @@ export interface TicketDetails {
   subject: string;
   description: string;
   customerName: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'CLOSED';
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   createdAt: string;
+  assignedAgentId?: string;
+  assignedAgentName?: string;
+  department: string;
   threadEntries: ThreadEntry[];
+  attachments: Attachment[];
 }
 
 export const useTicket = (ticketId?: string) => {
