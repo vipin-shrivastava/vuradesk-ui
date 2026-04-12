@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
-import { Mail, User, FileText, Pen, Loader2, CheckCircle2, LifeBuoy, HelpCircle, FileQuestion, BookOpen } from 'lucide-react';
+import { Mail, User, FileText, Pen, Loader2, CheckCircle2, LifeBuoy, HelpCircle, FileQuestion, BookOpen, Building } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+
+interface Department {
+  id: string;
+  name: string;
+}
 
 const PublicTicketPage: React.FC = () => {
   const { settings } = useSystemSettings();
@@ -11,8 +17,23 @@ const PublicTicketPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [departmentId, setDepartmentId] = useState<string | undefined>(undefined);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axiosClient.get('/departments');
+        setDepartments(response.data);
+      } catch (err) {
+        console.error("Failed to fetch departments:", err);
+        toast.error("Could not load departments. Please try again later.");
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +43,10 @@ const PublicTicketPage: React.FC = () => {
       const payload = {
         firstName,
         lastName,
-        creatorEmail: email, // This is the fix
+        creatorEmail: email,
         subject,
         description,
+        departmentId,
       };
       console.log("Submit Public Ticket Payload:", payload);
       await axiosClient.post('/public/tickets', payload);
@@ -45,6 +67,7 @@ const PublicTicketPage: React.FC = () => {
     setEmail('');
     setSubject('');
     setDescription('');
+    setDepartmentId(undefined);
     setIsSuccess(false);
   };
 
@@ -146,6 +169,28 @@ const PublicTicketPage: React.FC = () => {
                 </div>
                 <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">We'll use this to send you updates.</p>
               </div>
+
+              {/* Department Select */}
+              {departments.length > 0 && (
+                <div>
+                  <label htmlFor="department" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                    Department
+                  </label>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <Select onValueChange={setDepartmentId} value={departmentId}>
+                      <SelectTrigger className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+                        <SelectValue placeholder="Select a department..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map(dept => (
+                          <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
 
               {/* Subject */}
               <div>

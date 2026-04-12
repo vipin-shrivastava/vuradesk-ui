@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 import { AlertCircle, ChevronUp, ChevronsUp, Minus, ShieldAlert, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ServiceUnavailable } from '@/components/illustrations/ServiceUnavailable';
 import CreateTicketModal from '@/components/modals/CreateTicketModal';
+import { Badge } from '@/components/ui/badge'; // Import Badge
 
 const statusStyles: { [key: string]: string } = {
   OPEN: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 dark:ring-1 dark:ring-blue-500/50',
@@ -25,6 +26,18 @@ const formatBackendDate = (dateArray: string | number[]): string => {
     return new Date(year, month - 1, day, hour, minute, second).toLocaleDateString();
   }
   return new Date(dateArray as string).toLocaleDateString();
+};
+
+// Simple hash function to get a color for a department
+const departmentColors = [
+  'bg-red-500', 'bg-green-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-cyan-500'
+];
+const getDepartmentColor = (deptName: string) => {
+  let hash = 0;
+  for (let i = 0; i < deptName.length; i++) {
+    hash = deptName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return departmentColors[Math.abs(hash) % departmentColors.length];
 };
 
 const TicketListPage: React.FC = () => {
@@ -70,7 +83,7 @@ const TicketListPage: React.FC = () => {
 
     return (
       <tr>
-        <td colSpan={5} className="text-center py-12">
+        <td colSpan={6} className="text-center py-12"> {/* Updated colspan */}
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">{message}</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subMessage}</p>
         </td>
@@ -100,6 +113,7 @@ const TicketListPage: React.FC = () => {
             <tr>
               <th scope="col" className="w-24 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject</th>
+              <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
               <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
               <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
               <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Created At</th>
@@ -117,6 +131,15 @@ const TicketListPage: React.FC = () => {
                   <Link to={`/tickets/${ticket.id}`} className="hover:text-primary-brand transition-colors cursor-pointer">
                     {ticket.subject}
                   </Link>
+                </td>
+                <td className="px-6 py-3 whitespace-nowrap align-middle">
+                  {ticket.department && (
+                    <Badge
+                      className={`text-white ${getDepartmentColor(ticket.department)}`}
+                    >
+                      {ticket.department}
+                    </Badge>
+                  )}
                 </td>
                 <td className="px-6 py-3 whitespace-nowrap align-middle">
                   <span className={`px-2 inline-flex items-center justify-center text-xs leading-5 font-semibold rounded-full ${statusStyles[ticket.status]}`}>

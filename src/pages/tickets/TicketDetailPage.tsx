@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTicket, ThreadEntry, Attachment } from '@/hooks/useTicket';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Agent {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
 
 // Helper function to get initials for the avatar
 const getInitials = (firstName?: string, lastName?: string, fallback?: string) => {
@@ -38,9 +45,36 @@ const TicketDetailPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<Attachment | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>("unassigned"); // Default to "unassigned"
+  const [isAssigning, setIsAssigning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollRef = useAutoScroll(ticket?.threadEntries);
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await axiosClient.get('/users/agents-admins'); // Assuming this endpoint exists
+        setAgents(response.data);
+      } catch (err) {
+        console.error('Failed to fetch agents:', err);
+        toast.error('Failed to load agents for assignment.');
+      }
+    };
+
+    if (activeRole === 'ADMIN' || activeRole === 'AGENT') {
+      fetchAgents();
+    }
+  }, [activeRole]);
+
+  useEffect(() => {
+    if (ticket?.assignedAgentId) {
+      setSelectedAssigneeId(ticket.assignedAgentId);
+    } else {
+      setSelectedAssigneeId("unassigned"); // Set to "unassigned" if no agent is assigned
+    }
+  }, [ticket?.assignedAgentId]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -106,7 +140,7 @@ const TicketDetailPage: React.FC = () => {
         console.error('Failed to upload one or more attachments:', uploadError);
         toast.error('Failed to upload attachments. Reply cancelled.');
         setIsReplying(false);
-        return; // Stop submission if uploads fail
+        return; // Stop submission if uploads fails
       }
     }
 
@@ -173,6 +207,28 @@ const TicketDetailPage: React.FC = () => {
       toast.error('Failed to update ticket status. Please try again.');
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleAssignAgent = async (value: string) => {
+    if (!ticketId || isAssigning) return;
+
+    setIsAssigning(true);
+    try {
+      const userIdToSend = value === "unassigned" ? null : value; // Convert "unassigned" to null for backend
+      const response = await axiosClient.patch(`/tickets/${ticketId}/assign`, { userId: userIdToSend });
+      setTicket(prev => prev ? { ...prev, assignedAgentId: response.data.assignedAgentId, assignedAgentFirstName: response.data.assignedAgentFirstName, assignedAgentLastName: response.data.assignedAgentLastName } : null);
+      setSelectedAssigneeId(value); // Keep "unassigned" in local state for display
+      if (value === "unassigned") {
+        toast.success('Ticket unassigned successfully!');
+      } else {
+        toast.success(`Ticket assigned to ${response.data.assignedAgentFirstName} ${response.data.assignedAgentLastName}`);
+      }
+    } catch (err) {
+      console.error('Failed to assign agent:', err);
+      toast.error('Failed to assign agent. Please try again.');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -290,7 +346,7 @@ const TicketDetailPage: React.FC = () => {
     }
 
     const displayName = isMe ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'You' : `${entry.posterFirstName || ''} ${entry.posterLastName || ''}`.trim() || entry.author || 'User';
-    const avatarInitials = getInitials(isMe ? user.firstName : entry.posterFirstName, isMe ? user.lastName : entry.posterLastName, entry.author || 'User');
+    const avatarInitials = getInitials(isMe ? user.firstName : entry.posterFirstName, isMe ? user.lastName : entry.lastName, entry.author || 'User');
     // Basic color generation based on initials for some variety if not me
     const avatarColor = isMe ? 'bg-blue-600 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
 
@@ -443,7 +499,7 @@ const TicketDetailPage: React.FC = () => {
                   </div>
                   {ticket.attachments.length > 1 && (
                     <div className="flex justify-start">
-                       <Button variant="ghost" size="sm" className="mt-2 text-xs text-slate-500 hover:text-primary-brand" onClick={() => handleDownloadAll(ticket.threadEntries?.[0]?.id)} disabled={isDownloadingAll}>
+                       <Button variant="ghost" size="sm" className="mt-2 text-xs text-slate-500 hover:text-primary-brand" onClick={() => handleDownloadAll()} disabled={isDownloadingAll}>
                          {isDownloadingAll ? <Loader2 size={12} className="mr-1 animate-spin" /> : <Download size={12} className="mr-1" />}
                          Download All (.zip)
                        </Button>
@@ -548,9 +604,46 @@ const TicketDetailPage: React.FC = () => {
             <span className="font-semibold text-text-main">{ticket.priority}</span>
           </div>
           <div>
+            <label className="block text-slate-500 dark:text-slate-500">Department</label>
+            <span className="font-semibold text-text-main">{ticket.department}</span>
+          </div>
+          <div>
             <label className="block text-slate-500 dark:text-slate-500">Created</label>
             <span className="font-semibold text-slate-500 dark:text-slate-500">{formatBackendDate(ticket.createdAt as any)}</span>
           </div>
+
+          {/* Assignee Section */}
+          {(activeRole === 'ADMIN' || activeRole === 'AGENT') && (
+            <div>
+              <label htmlFor="assignee" className="block text-slate-500 dark:text-slate-500 mb-1">Assignee</label>
+              <Select
+                onValueChange={handleAssignAgent}
+                value={selectedAssigneeId || "unassigned"}
+                disabled={isAssigning || agents.length === 0} // Disable if no agents
+              >
+                <SelectTrigger id="assignee" className="w-full bg-slate-50 border border-slate-200 rounded-md focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700">
+                  <SelectValue placeholder={agents.length === 0 ? "No Agents Available" : "Unassigned"}>
+                    {selectedAssigneeId && selectedAssigneeId !== "unassigned" ? (
+                      agents.find(a => a.id === selectedAssigneeId)?.firstName + " " + agents.find(a => a.id === selectedAssigneeId)?.lastName
+                    ) : (
+                      agents.length === 0 ? "No Agents Available" : "Unassigned"
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-slate-800">
+                  {agents.length > 0 && <SelectItem value="unassigned">Unassigned</SelectItem>}
+                  {agents.filter(a => a.id).map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id.toString()}>
+                      {agent.firstName} {agent.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {agents.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">No agents available to assign.</p>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 
