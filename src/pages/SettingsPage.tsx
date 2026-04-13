@@ -3,11 +3,10 @@ import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import EmailSettings from './settings/EmailSettings';
 import axiosClient from '@/api/axiosClient';
 import { Switch } from '@/components/ui/switch';
 
-type SettingsTab = 'general' | 'appearance' | 'security' | 'email';
+type SettingsTab = 'general' | 'appearance' | 'security';
 
 const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
@@ -22,13 +21,6 @@ const SettingsPage: React.FC = () => {
   const [footerText, setFooterText] = useState(settings.footerText || '');
   const [autoAssignmentEnabled, setAutoAssignmentEnabled] = useState(settings.autoAssignmentEnabled || false);
 
-  // Email Settings State
-  const [smtpHost, setSmtpHost] = useState('');
-  const [smtpPort, setSmtpPort] = useState('');
-  const [smtpUsername, setSmtpUsername] = useState('');
-  const [smtpPassword, setSmtpPassword] = useState('');
-  const [isPasswordSet, setIsPasswordSet] = useState(false);
-
   useEffect(() => {
     setAppName(settings.appName);
     setPrimaryFont(settings.primaryFont);
@@ -37,39 +29,9 @@ const SettingsPage: React.FC = () => {
     setAutoAssignmentEnabled(settings.autoAssignmentEnabled || false);
   }, [settings]);
 
-  useEffect(() => {
-    const fetchEmailSettings = async () => {
-      if (activeRole === 'ADMIN') {
-        try {
-          const { data } = await axiosClient.get('/settings/email');
-          if (data) {
-            setSmtpHost(data.host || '');
-            setSmtpPort(data.port?.toString() || '');
-            setSmtpUsername(data.username || '');
-            setIsPasswordSet(!!data.password);
-          }
-        } catch (error) {
-          console.error("Failed to fetch email settings", error);
-        }
-      }
-    };
-    fetchEmailSettings();
-  }, [activeRole]);
-
   const handleSaveChanges = async () => {
     try {
       await saveSystemSettings({ appName, primaryFont, loginTagline, footerText, autoAssignmentEnabled });
-
-      if (activeRole === 'ADMIN') {
-        const emailPayload = {
-          host: smtpHost,
-          port: parseInt(smtpPort, 10),
-          username: smtpUsername,
-          ...(smtpPassword && { password: smtpPassword }),
-        };
-        await axiosClient.put('/settings/email', emailPayload);
-      }
-
       toast.success('Settings saved successfully!');
       fetchSystemSettings(); // Refetch to get the latest settings
     } catch (error) {
@@ -180,20 +142,6 @@ const SettingsPage: React.FC = () => {
       case 'general': return renderGeneralSettings();
       case 'appearance': return renderAppearanceSettings();
       case 'security': return renderSecuritySettings();
-      case 'email':
-        return (
-          <EmailSettings
-            host={smtpHost}
-            setHost={setSmtpHost}
-            port={smtpPort}
-            setPort={setSmtpPort}
-            username={smtpUsername}
-            setUsername={setSmtpUsername}
-            password={smtpPassword}
-            setPassword={setSmtpPassword}
-            isPasswordSet={isPasswordSet}
-          />
-        );
       default: return null;
     }
   };
@@ -213,9 +161,6 @@ const SettingsPage: React.FC = () => {
           <button onClick={() => setActiveTab('general')} className={getNavClass('general')}>General</button>
           <button onClick={() => setActiveTab('appearance')} className={getNavClass('appearance')}>Appearance</button>
           <button onClick={() => setActiveTab('security')} className={getNavClass('security')}>Security</button>
-          {activeRole === 'ADMIN' && (
-            <button onClick={() => setActiveTab('email')} className={getNavClass('email')}>Email</button>
-          )}
         </nav>
 
         <div className="md:col-span-3">

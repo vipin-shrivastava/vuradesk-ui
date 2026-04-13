@@ -1,6 +1,6 @@
 import React, { useState, ReactNode, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Search, User, Sun, Moon, LogOut, LayoutDashboard, Ticket, Users, Settings } from 'lucide-react';
+import { Menu, Search, User, Sun, Moon, LogOut, LayoutDashboard, Ticket, Users, Settings, Shield, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
@@ -20,6 +20,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { settings } = useSystemSettings();
   const location = useLocation();
 
+  // Helper to check if user has a specific permission
+  const hasPermission = (permission: string) => {
+    return user?.authorities?.includes(permission);
+  };
+
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: true },
     {
@@ -36,6 +41,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
     { name: 'Customers', href: '/customers', icon: Users, visible: activeRole !== 'CUSTOMER' },
     { name: 'Settings', href: '/settings', icon: Settings, visible: activeRole === 'ADMIN' },
+    { name: 'Access Control', href: '/admin/access-control', icon: Shield, visible: activeRole === 'ADMIN' },
+    // Temporarily visible to Admin for debugging
+    { name: 'Team', href: '/admin/team', icon: Users, visible: activeRole === 'ADMIN' /* && hasPermission('user:manage') */ },
+    { name: 'Mailbox', href: '/admin/mailbox', icon: Mail, visible: activeRole === 'ADMIN' /* && hasPermission('system:settings') */ },
   ];
 
   useEffect(() => {
@@ -143,6 +152,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     Signed in as <br />
                     <span className="font-semibold">{user?.username}</span>
                   </div>
+                  <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <User className="h-4 w-4 mr-2" />
+                    View Profile
+                  </Link>
                   <button
                     onClick={logout}
                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800"
