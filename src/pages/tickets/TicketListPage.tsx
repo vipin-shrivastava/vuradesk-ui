@@ -11,13 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import axiosClient from '@/api/axiosClient';
 
 const statusStyles: { [key: string]: string } = {
-  OPEN: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 dark:ring-1 dark:ring-blue-500/50',
-  IN_PROGRESS: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 dark:ring-1 dark:ring-yellow-500/50',
-  CLOSED: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 dark:ring-1 dark:ring-green-500/50',
+  OPEN: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-1 dark:ring-blue-500/50',
+  IN_PROGRESS: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300 dark:ring-1 dark:ring-yellow-500/50',
+  CLOSED: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300 dark:ring-1 dark:ring-green-500/50',
 };
 
 const priorityIcons: { [key: string]: React.ReactNode } = {
-  LOW: <Minus className="text-slate-500" size={20} />,
+  LOW: <Minus className="text-muted-foreground" size={20} />,
   MEDIUM: <ChevronUp className="text-yellow-500" size={20} />,
   HIGH: <ChevronsUp className="text-orange-500" size={20} />,
   URGENT: <ShieldAlert className="text-red-500" size={20} />,
@@ -80,7 +80,7 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
     if (loading || error || !pagination || pagination.totalPages <= 1) return null;
     return (
       <div className="flex items-center justify-between mt-4">
-        <span className="text-sm text-slate-500 dark:text-slate-400">
+        <span className="text-sm text-muted-foreground">
           Page {pagination.page + 1} of {pagination.totalPages}
         </span>
         <div className="flex items-center space-x-2">
@@ -89,14 +89,14 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
             disabled={pagination.page === 0}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
-            <ChevronLeft size={20} className="dark:text-slate-300" />
+            <ChevronLeft size={20} className="text-muted-foreground" />
           </button>
           <button
             onClick={() => pagination.goToPage(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages - 1}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
-            <ChevronRight size={20} className="dark:text-slate-300" />
+            <ChevronRight size={20} className="text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -115,15 +115,15 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
     return (
       <tr>
         <td colSpan={7} className="text-center py-12">
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">{message}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{subMessage}</p>
+          <h3 className="text-lg font-semibold text-foreground">{message}</h3>
+          <p className="text-sm text-muted-foreground mt-1">{subMessage}</p>
         </td>
       </tr>
     );
   };
 
   const renderContent = () => {
-    if (loading) return <div className="text-center p-8 dark:text-slate-400">Loading tickets...</div>;
+    if (loading) return <div className="text-center p-8 text-muted-foreground">Loading tickets...</div>;
     if (error) return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <ServiceUnavailable />
@@ -140,39 +140,39 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
     return (
       <div className="overflow-x-auto">
         <table className="min-w-full table-fixed">
-          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800/50">
             <tr>
-              <th scope="col" className="w-24 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('subject')}>
+              <th scope="col" className="w-24 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">ID</th>
+              <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider cursor-pointer" onClick={() => handleSort('subject')}>
                 <div className="flex items-center">
                   Subject {renderSortIcon('subject')}
                 </div>
               </th>
-              <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
-              <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Assigned To</th>
-              <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-              <th scope="col" className="w-32 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Priority</th>
-              <th scope="col" className="w-40 px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('createdAt')}>
+              <th scope="col" className="w-40 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Department</th>
+              <th scope="col" className="w-40 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned To</th>
+              <th scope="col" className="w-32 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Status</th>
+              <th scope="col" className="w-32 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">Priority</th>
+              <th scope="col" className="w-40 px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider cursor-pointer" onClick={() => handleSort('createdAt')}>
                 <div className="flex items-center">
                   Created At {renderSortIcon('createdAt')}
                 </div>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/60">
+          <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800/50">
             {tickets && tickets.length > 0 ? tickets.map((ticket: Ticket) => (
-              <tr key={ticket.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200">
-                <td className="px-6 py-3 whitespace-nowrap text-sm font-medium align-middle">
+              <tr key={ticket.id} className="group relative hover:bg-accent/50 transition-colors duration-200">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium align-middle text-muted-foreground group-hover:border-l-2 group-hover:border-primary-brand">
                   <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-mono">
                     #{ticket.id}
                   </span>
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-200 truncate align-middle">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-foreground truncate max-w-[400px] align-middle">
                   <Link to={`/tickets/${ticket.id}`} className="hover:text-primary-brand transition-colors cursor-pointer">
                     {ticket.subject}
                   </Link>
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap align-middle">
+                <td className="px-4 py-3 whitespace-nowrap align-middle">
                   {ticket.department && (
                     <Badge
                       className={`text-white ${getDepartmentColor(ticket.department)}`}
@@ -181,32 +181,32 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
                     </Badge>
                   )}
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap align-middle">
+                <td className="px-4 py-3 whitespace-nowrap align-middle">
                   {ticket.assignedAgentName ? (
                     <div className="flex items-center">
                       <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-blue-600 text-white mr-2">
                         {getInitials(ticket.assignedAgentName)}
                       </div>
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <span className="text-sm font-medium text-foreground">
                         {ticket.assignedAgentName}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">Unassigned</span>
+                    <span className="text-sm text-muted-foreground">Unassigned</span>
                   )}
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap align-middle">
+                <td className="px-4 py-3 whitespace-nowrap align-middle">
                   <span className={`px-2 inline-flex items-center justify-center text-xs leading-5 font-semibold rounded-full ${statusStyles[ticket.status]}`}>
                     {ticket.status.replace('_', ' ')}
                   </span>
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 align-middle">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground align-middle">
                   <div className="flex items-center">
                     {priorityIcons[ticket.priority]}
                     <span className="ml-2 hidden sm:inline">{ticket.priority}</span>
                   </div>
                 </td>
-                <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400 align-middle">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground align-middle">
                   {formatBackendDate(ticket.createdAt as any)}
                 </td>
               </tr>
@@ -220,9 +220,9 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-transparent dark:border-slate-800/60">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-lg shadow-sm border border-transparent dark:border-slate-800/50">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {filter === 'my-tickets' ? 'My Tickets' : 'All Tickets'}
           </h1>
           <button

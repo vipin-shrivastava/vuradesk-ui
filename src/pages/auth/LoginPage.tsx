@@ -4,12 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const { login, isAuthenticated } = useAuth();
   const { settings } = useSystemSettings();
   const navigate = useNavigate();
@@ -41,11 +42,10 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-gray-100 dark:bg-background-main font-sans">
       {/* Left Panel */}
       <div
-        className="relative h-full min-h-[300px] lg:min-h-screen bg-cover bg-center flex items-center justify-center p-8 text-white text-center bg-slate-900"
-        style={{ backgroundImage: `url(${settings.logoUrl || '/src/assets/logo.png'})` }}
+        className="relative h-full min-h-[300px] lg:min-h-screen flex items-center justify-center p-8 text-white text-center bg-gradient-to-b from-[#0f172a] to-[#020617]"
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"></div>
         <div className="relative z-10 max-w-md">
+          <img src={settings.logoUrl || '/src/assets/logo.png'} alt="VuraDesk Logo" className="h-16 mx-auto mb-6" />
           <h1 className="text-4xl font-bold mb-4 tracking-tight">Welcome to {settings.appName}</h1>
           {settings.loginTagline && (
             <p className="mt-2 text-lg text-slate-200">
@@ -57,18 +57,18 @@ const LoginPage: React.FC = () => {
 
       {/* Right Panel */}
       <div className="flex items-center justify-center p-8 lg:p-16">
-        <div className="bg-white dark:bg-card-bg p-10 rounded-2xl shadow-xl w-full max-w-md border border-transparent dark:border-slate-800/60">
-          <h2 className="text-3xl font-extrabold text-center mb-8 text-slate-900 dark:text-white tracking-tight">Login to {settings.appName}</h2>
+        <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+          <h2 className="text-3xl font-extrabold text-center mb-8 text-slate-900 tracking-tight">Login to {settings.appName}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Email</label>
+              <label htmlFor="email" className="block text-left w-full text-sm font-bold text-slate-900 tracking-tight mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="email"
                   id="email"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-500"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -80,23 +80,30 @@ const LoginPage: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Password</label>
-                <a href="#" className="text-xs font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <label htmlFor="password" className="block text-left w-full text-sm font-bold text-slate-900 tracking-tight">Password</label>
+                <a href="#" className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors">
                   Forgot Password?
                 </a>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                  className="w-full pl-10 pr-10 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-slate-500"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -113,15 +120,15 @@ const LoginPage: React.FC = () => {
           </form>
 
           {/* Navigation Links */}
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center space-y-4">
-            <span className="text-sm text-slate-600 dark:text-slate-400">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center space-y-4">
+            <span className="text-sm text-slate-600">
               Don't have an account?{' '}
               <Link to="/register" className="font-bold hover:underline underline-offset-2 transition-all" style={{ color: 'var(--primary-brand)' }}>
                 Register here
               </Link>
             </span>
 
-            <Link to="/submit-ticket" className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex items-center">
+            <Link to="/submit-ticket" className="text-xs font-medium text-slate-600 hover:text-slate-700 transition-colors flex items-center">
               Need help? Submit a support ticket
             </Link>
           </div>

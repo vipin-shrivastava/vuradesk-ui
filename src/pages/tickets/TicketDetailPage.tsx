@@ -20,7 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface Agent {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
 }
 
 // Helper function to get initials for the avatar
@@ -56,8 +57,8 @@ const TicketDetailPage: React.FC = () => {
     const fetchAgents = async () => {
       setAgentsLoading(true);
       try {
-        const response = await axiosClient.get('/users/agents-admins');
-        setAgents(response.data);
+        const response = await axiosClient.get('/users/list/agents-admins');
+        setAgents(response.data.content || []);
       } catch (err) {
         console.error('Failed to fetch agents:', err);
         toast.error('Failed to load agents for assignment.');
@@ -210,7 +211,7 @@ const TicketDetailPage: React.FC = () => {
         toast.success('Ticket unassigned successfully!');
       } else {
         const agent = agents.find(a => a.id === value);
-        toast.success(`Ticket assigned to ${agent?.fullName}`);
+        toast.success(`Ticket assigned to ${agent?.firstName} ${agent?.lastName}`);
       }
     } catch (err) {
       console.error('Failed to assign agent:', err);
@@ -602,9 +603,9 @@ const TicketDetailPage: React.FC = () => {
                   {!agentsLoading && (
                     <>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
-                      {agents.filter(a => a.id).map((agent) => (
+                      {agents?.filter(a => a.id).map((agent) => (
                         <SelectItem key={agent.id} value={agent.id.toString()}>
-                          {agent.id === user.id ? `${agent.fullName} (You)` : agent.fullName}
+                          {agent.id === user.id ? `${agent.firstName} ${agent.lastName} (You)` : `${agent.firstName} ${agent.lastName}`}
                         </SelectItem>
                       ))}
                     </>

@@ -91,14 +91,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <Tooltip key={item.name} text={item.name}>
                 <Link
                   to={item.href}
-                  className={`relative flex items-center p-3 rounded-lg text-text-main hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300
+                  className={`relative flex items-center p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300
                     ${isSidebarCollapsed ? 'justify-center' : ''}`}
                 >
                   {isActive && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full" style={{ backgroundColor: 'var(--primary-brand)' }}></div>
                   )}
-                  <item.icon className={`h-6 w-6 ${isSidebarCollapsed ? '' : 'mr-4'}`} />
-                  {!isSidebarCollapsed && <span className="font-medium">{item.name}</span>}
+                  <item.icon className={`h-6 w-6 text-muted-foreground ${isSidebarCollapsed ? '' : 'mr-4'}`} />
+                  {!isSidebarCollapsed && <span className="font-medium text-foreground">{item.name}</span>}
                 </Link>
               </Tooltip>
             );
@@ -108,7 +108,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <div className="p-4 border-t border-card-border">
           <div className={`flex items-center justify-center ${isSidebarCollapsed ? 'h-6' : ''}`}>
             {!isSidebarCollapsed && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-muted-foreground">
                 Powered by <strong>{settings.appName}</strong>
               </span>
             )}
@@ -119,7 +119,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col">
         <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
             <input
               type="text"
               placeholder="Search..."
@@ -133,7 +133,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               onClick={toggleDarkMode}
               className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300"
             >
-              {isDarkMode ? <Sun size={20} className="text-yellow-300" /> : <Moon size={20} />}
+              {isDarkMode ? <Sun size={20} className="text-muted-foreground" /> : <Moon size={20} className="text-muted-foreground" />}
             </button>
             <RoleDropdown />
             <div className="relative">
@@ -148,12 +148,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </button>
               {isProfileDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-2 z-10 border border-card-border">
-                  <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-card-border">
+                  <div className="px-4 py-2 text-sm text-muted-foreground border-b border-card-border">
                     Signed in as <br />
-                    <span className="font-semibold">{user?.username}</span>
+                    <span className="font-semibold text-foreground">{user?.username}</span>
                   </div>
-                  <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-800">
-                    <User className="h-4 w-4 mr-2" />
+                  <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
                     View Profile
                   </Link>
                   <button

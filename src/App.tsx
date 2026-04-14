@@ -13,11 +13,13 @@ import ForgotPasswordPage from './pages/auth/ForgotPassword';
 import ResetPasswordPage from './pages/auth/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import MainLayout from './components/MainLayout';
+import PublicLayout from './components/PublicLayout'; // Import PublicLayout
 import ProfilePage from './pages/ProfilePage';
 import AccessControlPage from './pages/settings/AccessControlPage';
 import TeamPage from './pages/admin/TeamPage';
 import MailboxPage from './pages/admin/MailboxPage';
 import SecurityDebugger from './components/SecurityDebugger';
+import SetupWizard from './pages/setup/SetupWizard';
 import './App.css';
 
 function App() {
@@ -26,12 +28,13 @@ function App() {
       <SecurityDebugger />
       <Routes>
         {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/submit-ticket" element={<PublicTicketPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
+        <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
+        <Route path="/submit-ticket" element={<PublicLayout><PublicTicketPage /></PublicLayout>} />
+        <Route path="/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
+        <Route path="/reset-password" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
+        <Route path="/setup" element={<PublicLayout><SetupWizard /></PublicLayout>} />
+        <Route path="/" element={<PublicLayout><LoginPage /></PublicLayout>} />
 
         {/* Protected Routes that DO NOT use the MainLayout */}
         <Route

@@ -3,10 +3,17 @@ import axiosClient from '@/api/axiosClient';
 
 export interface Agent {
   id: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
   roles: string[];
   enabled: boolean;
+  phone?: string;
+  street?: string;
+  city?: string;
+  pin?: string;
+  state?: string;
+  profilePictureUrl?: string;
 }
 
 export const useAgents = () => {
@@ -18,8 +25,8 @@ export const useAgents = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosClient.get('/users/list/staff');
-      setAgents(response.data);
+      const response = await axiosClient.get('/users/list/agents-admins'); // Corrected endpoint
+      setAgents(response.data.content || []); // Handle paginated response
     } catch (err: any) {
       console.error('Failed to fetch agents:', err);
       if (err.response?.status === 500) {
