@@ -11,6 +11,9 @@ export default {
         'primary-navy': '#263238',
         'primary-blue': '#00A3E0',
         'light-gray': '#F5F7F9',
+        blue: { // Override default blue-500 with brand blue
+          500: '#00A3E0',
+        },
       },
       fontFamily: {
         inter: ['Inter', 'sans-serif'],

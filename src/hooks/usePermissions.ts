@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosClient from '@/api/axiosClient';
 
 export interface Permission {
-  name: string;
-  description: string;
+  key: string;
+  label: string;
+  description?: string;
 }
 
 export const usePermissions = () => {

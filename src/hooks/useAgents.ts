@@ -14,6 +14,10 @@ export interface Agent {
   pin?: string;
   state?: string;
   profilePictureUrl?: string;
+  // New fields for permissions and groups
+  directPermissions: string[];
+  assignedGroupIds: string[];
+  inheritedPermissions: { [key: string]: string[] }; // Map of permission ID to source labels
 }
 
 export const useAgents = () => {
@@ -26,7 +30,15 @@ export const useAgents = () => {
     setError(null);
     try {
       const response = await axiosClient.get('/users/list/agents-admins'); // Corrected endpoint
-      setAgents(response.data.content || []); // Handle paginated response
+      // Assuming the API now returns directPermissions, assignedGroupIds, and inheritedPermissions
+      // If not, these would need to be fetched separately or mocked.
+      const fetchedAgents: Agent[] = response.data.content.map((agent: any) => ({
+        ...agent,
+        directPermissions: agent.directPermissions || [],
+        assignedGroupIds: agent.assignedGroupIds || [],
+        inheritedPermissions: agent.inheritedPermissions || {},
+      }));
+      setAgents(fetchedAgents);
     } catch (err: any) {
       console.error('Failed to fetch agents:', err);
       if (err.response?.status === 500) {

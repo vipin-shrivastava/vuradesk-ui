@@ -53,6 +53,19 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
     }
   }, [customerEmail]);
 
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
   const handleSuggestionClick = (customer: Customer) => {
     setCustomerEmail(customer.email);
     setCustomerId(customer.id);
@@ -115,7 +128,7 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-slate-900/20 dark:bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
       <div className="bg-card-bg rounded-lg shadow-xl w-full max-w-2xl flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-card-border">
           <h2 className="text-lg font-semibold text-text-main">Create New Ticket</h2>

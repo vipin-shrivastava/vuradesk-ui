@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSharedTicket } from '@/contexts/TicketContext';
 import { toast } from 'sonner';
 import { ChevronDown, Check } from 'lucide-react';
-import axiosClient from '@/api/axiosClient';
 
 const RoleDropdown: React.FC = () => {
   const { user, activeRole, setActiveRole, updateLocalRole } = useAuth();
+  const { setTicket, setIsSwitchingRole } = useSharedTicket();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleRoleSelect = (newRole: string) => {
     if (newRole !== activeRole) {
-      setActiveRole(newRole);
-      toast.success(`Role switched to ${newRole}`);
+      setIsSwitchingRole(true);
+      setTicket(null); // Explicitly set activeTicket to null
+
+      setTimeout(() => {
+        setActiveRole(newRole);
+        toast.success(`Role switched to ${newRole}`);
+
+        // Use window.location.replace for hard redirect to a clean URL
+        const isSwitchingToCustomer = newRole === 'CUSTOMER';
+        window.location.replace(isSwitchingToCustomer ? '/inbox' : '/dashboard');
+
+      }, 500); // A small delay to allow the loading shield to be visible
     }
     setIsOpen(false);
   };
@@ -19,7 +30,6 @@ const RoleDropdown: React.FC = () => {
   const handleSetAsDefault = async () => {
     if (!activeRole) return;
     try {
-      // The updateLocalRole function in AuthContext already handles this PATCH request.
       await updateLocalRole(activeRole);
       toast.success(`Set ${activeRole} as your default role.`);
     } catch (error) {

@@ -1,12 +1,16 @@
 import React, { useState, ReactNode, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Search, User, Sun, Moon, LogOut, LayoutDashboard, Ticket, Users, Settings, Shield, Mail } from 'lucide-react';
+import { Menu, Search, User, Sun, Moon, LogOut, LayoutDashboard, Ticket, Users, Settings, Shield, Mail, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
+import { useSharedTicket } from '@/contexts/TicketContext';
 import RoleDropdown from './RoleDropdown';
 import Tooltip from './Tooltip';
 import logo from '@/assets/logo.png';
+import FloatingCreateButton from './FloatingCreateButton';
+import CreateTicketModal from './modals/CreateTicketModal';
+import BrandedLoadingOverlay from './BrandedLoadingOverlay';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -15,36 +19,43 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const { user, logout, activeRole } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { settings } = useSystemSettings();
+  const { isSwitchingRole } = useSharedTicket();
   const location = useLocation();
 
-  // Helper to check if user has a specific permission
-  const hasPermission = (permission: string) => {
-    return user?.authorities?.includes(permission);
-  };
+  const isTicketDetailPage = /^\/tickets\/.+/.test(location.pathname);
+  const isLegacyTicketPage = location.pathname === '/tickets';
+
+  // "Safety" Role: If activeRole is somehow "UNDEFINED" or null, default to 'CUSTOMER' for UI rendering
+  const effectiveRole = activeRole === 'UNDEFINED' || !activeRole ? 'CUSTOMER' : activeRole;
+
+  const isCustomer = effectiveRole === 'CUSTOMER';
+  const isAgent = effectiveRole === 'AGENT'; // Added for isInternal
+  const isAdmin = effectiveRole === 'ADMIN' || effectiveRole === 'SUBADMIN';
+  const isInternal = isAdmin || isAgent; // Helper for internal users
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: true },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: isInternal },
     {
       name: 'All Tickets',
       href: '/tickets',
       icon: Ticket,
-      visible: activeRole !== 'CUSTOMER'
+      visible: isInternal
     },
     {
-      name: 'My Tickets',
-      href: '/my-tickets',
-      icon: Ticket,
-      visible: activeRole !== 'CUSTOMER'
+      name: 'Inbox',
+      href: '/inbox',
+      icon: MessageSquare,
+      visible: isCustomer // Only visible to customers
     },
-    { name: 'Customers', href: '/customers', icon: Users, visible: activeRole !== 'CUSTOMER' },
-    { name: 'Settings', href: '/settings', icon: Settings, visible: activeRole === 'ADMIN' },
-    { name: 'Access Control', href: '/admin/access-control', icon: Shield, visible: activeRole === 'ADMIN' },
-    // Temporarily visible to Admin for debugging
-    { name: 'Team', href: '/admin/team', icon: Users, visible: activeRole === 'ADMIN' /* && hasPermission('user:manage') */ },
-    { name: 'Mailbox', href: '/admin/mailbox', icon: Mail, visible: activeRole === 'ADMIN' /* && hasPermission('system:settings') */ },
+    { name: 'Customers', href: '/customers', icon: Users, visible: isAdmin },
+    { name: 'Settings', href: '/settings', icon: Settings, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
+    { name: 'Access Control', href: '/admin/access-control', icon: Shield, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
+    { name: 'Team', href: '/admin/team', icon: Users, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
+    { name: 'Mailbox', href: '/admin/mailbox', icon: Mail, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
   ];
 
   useEffect(() => {
@@ -68,7 +79,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-text-main transition-colors duration-300" style={{ fontFamily: 'var(--font-family)' }}>
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 text-text-main transition-colors duration-300 overflow-hidden" style={{ fontFamily: 'var(--font-family)' }}>
+      {isSwitchingRole && <BrandedLoadingOverlay />}
       <aside
         className={`bg-white dark:bg-slate-900 shadow-lg transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? 'w-20' : 'w-64'} flex flex-col relative`}
@@ -105,7 +117,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-card-border">
+        <div className="p-4">
           <div className={`flex items-center justify-center ${isSidebarCollapsed ? 'h-6' : ''}`}>
             {!isSidebarCollapsed && (
               <span className="text-xs text-muted-foreground">
@@ -116,8 +128,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
             <input
@@ -169,13 +181,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto">
-          <div className="p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
-            <div className="bg-white dark:bg-slate-900 shadow-sm dark:shadow-none rounded-lg">
-              {children}
+        <main className={`flex-1 ${isTicketDetailPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+          {isTicketDetailPage || isLegacyTicketPage ? (
+            children
+          ) : (
+            <div className="p-4 md:p-8 max-w-[1600px] mx-auto w-full transition-all duration-300">
+              <div className="bg-white dark:bg-slate-900 shadow-sm dark:shadow-none rounded-lg">
+                {children}
+              </div>
             </div>
-          </div>
+          )}
         </main>
+
+        {isCustomer && <FloatingCreateButton onClick={() => setCreateModalOpen(true)} />}
+        <CreateTicketModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onTicketCreated={() => {
+            // In a real app, you'd probably want to refetch the ticket list here
+          }}
+        />
       </div>
     </div>
   );
