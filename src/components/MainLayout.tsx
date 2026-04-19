@@ -20,7 +20,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-  const { user, logout, activeRole } = useAuth();
+  const { user, logout, activeRole, hasPermission } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { settings } = useSystemSettings();
   const { isSwitchingRole } = useSharedTicket();
@@ -29,33 +29,55 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isTicketDetailPage = /^\/tickets\/.+/.test(location.pathname);
   const isLegacyTicketPage = location.pathname === '/tickets';
 
-  // "Safety" Role: If activeRole is somehow "UNDEFINED" or null, default to 'CUSTOMER' for UI rendering
-  const effectiveRole = activeRole === 'UNDEFINED' || !activeRole ? 'CUSTOMER' : activeRole;
-
-  const isCustomer = effectiveRole === 'CUSTOMER';
-  const isAgent = effectiveRole === 'AGENT'; // Added for isInternal
-  const isAdmin = effectiveRole === 'ADMIN' || effectiveRole === 'SUBADMIN';
-  const isInternal = isAdmin || isAgent; // Helper for internal users
-
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, visible: isInternal },
+    { 
+      name: 'Dashboard', 
+      href: '/dashboard', 
+      icon: LayoutDashboard, 
+      visible: hasPermission('ticket:view') 
+    },
     {
       name: 'All Tickets',
       href: '/tickets',
       icon: Ticket,
-      visible: isInternal
+      visible: hasPermission('ticket:view')
     },
     {
       name: 'Inbox',
       href: '/inbox',
       icon: MessageSquare,
-      visible: isCustomer // Only visible to customers
+      visible: hasPermission('ticket:own') && activeRole === 'CUSTOMER'
     },
-    { name: 'Customers', href: '/customers', icon: Users, visible: isAdmin },
-    { name: 'Settings', href: '/settings', icon: Settings, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
-    { name: 'Access Control', href: '/admin/access-control', icon: Shield, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
-    { name: 'Team', href: '/admin/team', icon: Users, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
-    { name: 'Mailbox', href: '/admin/mailbox', icon: Mail, visible: effectiveRole === 'ADMIN' }, // Use effectiveRole
+    { 
+      name: 'Customers', 
+      href: '/customers', 
+      icon: Users, 
+      visible: hasPermission('user:manage') 
+    },
+    { 
+      name: 'Settings', 
+      href: '/settings', 
+      icon: Settings, 
+      visible: hasPermission('system:settings') 
+    },
+    { 
+      name: 'Access Control', 
+      href: '/admin/access-control', 
+      icon: Shield, 
+      visible: hasPermission('role:manage') 
+    },
+    { 
+      name: 'Team', 
+      href: '/admin/team', 
+      icon: Users, 
+      visible: hasPermission('user:manage') 
+    },
+    { 
+      name: 'Mailbox', 
+      href: '/admin/mailbox', 
+      icon: Mail, 
+      visible: hasPermission('system:settings') 
+    },
   ];
 
   useEffect(() => {
@@ -129,53 +151,90 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-48 pl-10 pr-4 py-2 rounded-lg border border-transparent bg-slate-100 dark:bg-slate-800
-              focus:w-96 focus:outline-none focus:ring-2 focus:ring-primary-brand focus:border-transparent transition-all duration-300"
-            />
+        <header className="bg-white dark:bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 shrink-0 z-20">
+          <div className="flex-1 flex items-center">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-focus-within:text-primary-brand" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-48 md:w-64 pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800
+                focus:w-64 md:focus:w-96 focus:outline-none focus:ring-2 focus:ring-primary-brand/50 focus:border-primary-brand transition-all duration-300"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300"
+              className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300 text-muted-foreground"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {isDarkMode ? <Sun size={20} className="text-muted-foreground" /> : <Moon size={20} className="text-muted-foreground" />}
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
+            
             <RoleDropdown />
-            <div className="relative">
-              <button onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)} className="flex items-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+
+            <div className="relative ml-2">
+              <button 
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)} 
+                className={`flex items-center p-1 rounded-full border-2 transition-all duration-200 ${isProfileDropdownOpen ? 'border-primary-brand ring-4 ring-primary-brand/10' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
+              >
                 {user?.profilePicture ? (
                   <img src={user.profilePicture} alt="User Avatar" className="h-8 w-8 rounded-full object-cover" />
                 ) : (
-                  <div className="h-8 w-8 rounded-full bg-primary-brand flex items-center justify-center text-white text-sm font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-primary-brand flex items-center justify-center text-white text-xs font-bold shadow-inner">
                     {getUserInitials(user?.firstName, user?.lastName)}
                   </div>
                 )}
               </button>
+
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-xl py-2 z-10 border border-card-border">
-                  <div className="px-4 py-2 text-sm text-muted-foreground border-b border-card-border">
-                    Signed in as <br />
-                    <span className="font-semibold text-foreground">{user?.username}</span>
+                <>
+                  <div 
+                    className="fixed inset-0 z-30" 
+                    onClick={() => setIsProfileDropdownOpen(false)}
+                  ></div>
+                  <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 rounded-xl shadow-2xl py-2 z-40 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200 origin-top-right">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Signed in as</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{user?.username}</p>
+                      <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                    </div>
+                    
+                    <div className="py-1">
+                      <Link 
+                        to="/profile" 
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <User className="h-4 w-4 mr-3 text-slate-400" />
+                        Account Settings
+                      </Link>
+                      <Link 
+                        to="/settings" 
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                        className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <Settings className="h-4 w-4 mr-3 text-slate-400" />
+                        Preferences
+                      </Link>
+                    </div>
+                    
+                    <div className="border-t border-slate-100 dark:border-slate-800 mt-1 pt-1">
+                      <button
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          logout();
+                        }}
+                        className="flex items-center w-full px-4 py-3 text-sm text-red-600 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Sign out
+                      </button>
+                    </div>
                   </div>
-                  <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-foreground hover:bg-slate-100 dark:hover:bg-slate-800">
-                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                    View Profile
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </button>
-                </div>
+                </>
               )}
             </div>
           </div>
@@ -193,7 +252,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           )}
         </main>
 
-        {isCustomer && <FloatingCreateButton onClick={() => setCreateModalOpen(true)} />}
+        {hasPermission('ticket:create') && <FloatingCreateButton onClick={() => setCreateModalOpen(true)} />}
         <CreateTicketModal
           isOpen={isCreateModalOpen}
           onClose={() => setCreateModalOpen(false)}

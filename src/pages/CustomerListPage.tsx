@@ -15,7 +15,7 @@ interface Customer {
 }
 
 const CustomerListPage: React.FC = () => {
-  const { activeRole } = useAuth();
+  const { activeRole, hasPermission } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +26,7 @@ const CustomerListPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0);
 
   const fetchCustomers = async (pageToFetch = 0) => {
-    if (activeRole === 'CUSTOMER') {
+    if (!hasPermission('user:manage')) {
       setLoading(false);
       return;
     }
@@ -101,7 +101,7 @@ const CustomerListPage: React.FC = () => {
     );
   };
 
-  if (activeRole === 'CUSTOMER') {
+  if (!hasPermission('user:manage')) {
     return (
       <div className="flex flex-col items-center justify-center p-12 text-center h-full">
         <AlertCircle size={64} className="text-red-500 mb-4" />

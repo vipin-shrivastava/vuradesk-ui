@@ -49,7 +49,7 @@ interface TicketListPageProps {
 
 const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
   const { tickets, loading, error, refetch, pagination, applyFilters, filters } = useTickets(filter);
-  const { activeRole } = useAuth();
+  const { activeRole, hasPermission } = useAuth();
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [departments, setDepartments] = useState<{ id: string, name: string }[]>([]);
 
@@ -104,7 +104,7 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
   };
 
   const renderEmptyState = () => {
-    const isCustomer = activeRole === 'CUSTOMER';
+    const isCustomer = hasPermission('ticket:own') && activeRole === 'CUSTOMER';
     const message = isCustomer
       ? "You haven't created any tickets yet."
       : "No tickets found for the current filter.";
@@ -225,13 +225,15 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {filter === 'my-tickets' ? 'My Tickets' : 'All Tickets'}
           </h1>
-          <button
-            onClick={() => setCreateModalOpen(true)}
-            className="text-white font-bold py-2.5 px-5 rounded-lg transition-colors duration-200 hover:opacity-90 shadow-sm"
-            style={{ backgroundColor: 'var(--primary-brand)' }}
-          >
-            Create Ticket
-          </button>
+          {hasPermission('ticket:create') && (
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="text-white font-bold py-2.5 px-5 rounded-lg transition-colors duration-200 hover:opacity-90 shadow-sm"
+              style={{ backgroundColor: 'var(--primary-brand)' }}
+            >
+              Create Ticket
+            </button>
+          )}
         </div>
         <div className="sticky top-0 bg-white dark:bg-slate-900 py-4 z-10">
           <div className="flex items-center space-x-4">

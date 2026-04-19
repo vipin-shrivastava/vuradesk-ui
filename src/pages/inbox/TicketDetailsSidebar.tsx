@@ -23,12 +23,12 @@ interface Agent {
 
 const TicketDetailsSidebar: React.FC = () => {
   const { ticket, setTicket } = useTicket(); // Use useTicket without ticketId to get shared context
-  const { user, activeRole } = useAuth();
+  const { user, activeRole, hasPermission } = useAuth();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [agentsLoading, setAgentsLoading] = useState(true);
-  const isCustomer = activeRole === 'CUSTOMER';
+  const isCustomer = hasPermission('ticket:own') && activeRole === 'CUSTOMER';
 
   useEffect(() => {
     const fetchAgents = async () => {
@@ -44,10 +44,10 @@ const TicketDetailsSidebar: React.FC = () => {
       }
     };
 
-    if ((activeRole === 'ADMIN' || activeRole === 'AGENT') && ticket) {
+    if (hasPermission('ticket:assign') && ticket) {
       fetchAgents();
     }
-  }, [activeRole, ticket]);
+  }, [activeRole, ticket, hasPermission]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!ticket || isUpdatingStatus) return;
@@ -116,7 +116,7 @@ const TicketDetailsSidebar: React.FC = () => {
         </div>
         <div className="flex justify-between items-center">
           <label className="text-slate-600 dark:text-slate-400">Status</label>
-          {activeRole !== 'CUSTOMER' ? (
+          {hasPermission('ticket:edit') ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Badge
@@ -138,7 +138,7 @@ const TicketDetailsSidebar: React.FC = () => {
                     {status.replace('_', ' ')}
                   </DropdownMenuItem>
                 ))}
-                {activeRole === 'ADMIN' && (
+                {hasPermission('ticket:delete') && (
                   <DropdownMenuItem
                     onClick={() => handleStatusChange('CLOSED')}
                     className="cursor-pointer px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -166,7 +166,7 @@ const TicketDetailsSidebar: React.FC = () => {
           <span className="font-semibold text-slate-900 dark:text-white">{formatBackendDate(ticket.createdAt as any)}</span>
         </div>
 
-        {(activeRole === 'ADMIN' || activeRole === 'AGENT') && (
+        {hasPermission('ticket:assign') && (
           <div className="pt-2">
             <div className="flex justify-between items-center mb-2">
               <label htmlFor="assignee" className="text-slate-600 dark:text-slate-400">Assignee</label>

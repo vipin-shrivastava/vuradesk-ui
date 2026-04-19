@@ -1,0 +1,12 @@
+import React from 'react';
+
+const AdminDashboard: React.FC = () => {
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+      <p>Welcome to the admin dashboard. Here you can manage all system settings.</p>
+    </div>
+  );
+};
+
+export default AdminDashboard;

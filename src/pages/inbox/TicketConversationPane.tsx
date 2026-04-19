@@ -47,18 +47,11 @@ const TicketConversationPane: React.FC<TicketConversationPaneProps> = ({ popoutT
   const { ticketId: routeTicketId } = useParams<{ ticketId: string }>();
   const currentTicketId = popoutTicketId || routeTicketId;
   const { ticket, loading, error, setTicket } = useTicket(currentTicketId);
-  const { user, activeRole } = useAuth();
+  const { user, activeRole, hasPermission } = useAuth();
   const [newReply, setNewReply] = useState('');
-  const [isReplying, setIsReplying] = useState(false);
-  const [isInternalNote, setIsInternalNote] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [selectedImage, setSelectedImage] = useState<Attachment | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  // ...
   const scrollRef = useAutoScroll(ticket?.threadEntries);
-  const isCustomer = activeRole === 'CUSTOMER';
+  const isCustomer = hasPermission('ticket:own') && activeRole === 'CUSTOMER';
   const backLink = isCustomer ? '/inbox' : '/tickets';
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -443,7 +436,7 @@ const TicketConversationPane: React.FC<TicketConversationPaneProps> = ({ popoutT
                 </div>
               )}
               <div className="flex items-center justify-between mt-2">
-                {activeRole !== 'CUSTOMER' ? (
+                {hasPermission('ticket:view_internal_notes') ? (
                   <label className="flex items-center cursor-pointer text-sm text-gray-600 dark:text-gray-400">
                     <input type="checkbox" checked={isInternalNote} onChange={(e) => setIsInternalNote(e.target.checked)} className="form-checkbox h-4 w-4 text-yellow-500 rounded focus:ring-yellow-400" />
                     <Lock size={14} className="ml-2 mr-1" />

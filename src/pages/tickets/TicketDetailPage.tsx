@@ -84,10 +84,10 @@ const TicketDetailPage: React.FC = () => {
       }
     };
 
-    if (activeRole === 'ADMIN' || activeRole === 'AGENT') {
+    if (hasPermission('ticket:assign')) {
       fetchAgents();
     }
-  }, [activeRole]);
+  }, [activeRole, hasPermission]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -433,7 +433,7 @@ const TicketDetailPage: React.FC = () => {
               Back
              </Link>
              <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate max-w-lg mr-4">{ticket.subject}</h1>
-             {activeRole !== 'CUSTOMER' && (
+             {hasPermission('ticket:edit') && (
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
                    <Badge
@@ -455,7 +455,7 @@ const TicketDetailPage: React.FC = () => {
                        {status.replace('_', ' ')}
                      </DropdownMenuItem>
                    ))}
-                   {activeRole === 'ADMIN' && (
+                   {hasPermission('ticket:delete') && (
                      <DropdownMenuItem
                        onClick={() => handleStatusChange('CLOSED')}
                        className="cursor-pointer px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -552,7 +552,7 @@ const TicketDetailPage: React.FC = () => {
                 </div>
               )}
               <div className="flex items-center justify-between mt-2">
-                {activeRole !== 'CUSTOMER' ? (
+                {hasPermission('ticket:view_internal_notes') ? (
                   <label className="flex items-center cursor-pointer text-sm text-gray-600 dark:text-gray-400">
                     <input type="checkbox" checked={isInternalNote} onChange={(e) => setIsInternalNote(e.target.checked)} className="form-checkbox h-4 w-4 text-yellow-500 rounded focus:ring-yellow-400" />
                     <Lock size={14} className="ml-2 mr-1" />
@@ -608,7 +608,7 @@ const TicketDetailPage: React.FC = () => {
             <span className="font-semibold text-slate-900 dark:text-white">{formatBackendDate(ticket.createdAt as any)}</span>
           </div>
 
-          {(activeRole === 'ADMIN' || activeRole === 'AGENT') && (
+          {hasPermission('ticket:assign') && (
             <div className="pt-2">
               <div className="flex justify-between items-center mb-2">
                 <label htmlFor="assignee" className="text-slate-600 dark:text-slate-400">Assignee</label>
