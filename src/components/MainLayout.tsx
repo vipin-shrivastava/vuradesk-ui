@@ -40,14 +40,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       name: 'All Tickets',
       href: '/tickets',
       icon: Ticket,
-      visible: hasPermission('ticket:view')
+      visible: hasPermission('ticket:view') || hasPermission('ticket:own')
     },
-    {
-      name: 'Inbox',
-      href: '/inbox',
-      icon: MessageSquare,
-      visible: hasPermission('ticket:own') && activeRole === 'CUSTOMER'
-    },
+
     { 
       name: 'Customers', 
       href: '/customers', 

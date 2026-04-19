@@ -25,8 +25,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const isAgentOrAdmin = effectiveRole === 'AGENT' || effectiveRole === 'ADMIN' || effectiveRole === 'SUBADMIN';
 
   // Customer Redirection Logic - Moved here for higher priority
-  if (isCustomer && (location.pathname.startsWith('/tickets') || location.pathname.startsWith('/dashboard'))) {
-    return <Navigate to="/inbox" replace />;
+  if (isCustomer && location.pathname.startsWith('/dashboard')) {
+    return <Navigate to="/tickets" replace />;
   }
 
   // Agent/Admin Redirection Logic: If an internal user tries to access /inbox, redirect to /dashboard

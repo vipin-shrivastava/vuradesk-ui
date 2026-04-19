@@ -20,7 +20,7 @@ const RoleDropdown: React.FC = () => {
 
         // Use window.location.replace for hard redirect to a clean URL
         const isSwitchingToCustomer = newRole === 'CUSTOMER';
-        window.location.replace(isSwitchingToCustomer ? '/inbox' : '/dashboard');
+        window.location.replace(isSwitchingToCustomer ? '/tickets' : '/dashboard');
 
       }, 500); // A small delay to allow the loading shield to be visible
     }

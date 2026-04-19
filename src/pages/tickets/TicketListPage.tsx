@@ -235,42 +235,44 @@ const TicketListPage: React.FC<TicketListPageProps> = ({ filter }) => {
             </button>
           )}
         </div>
-        <div className="sticky top-0 bg-white dark:bg-slate-900 py-4 z-10">
-          <div className="flex items-center space-x-4">
-            <Select onValueChange={(value) => applyFilters({ departmentId: value })} value={filters.departmentId || 'ALL'}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Departments</SelectItem>
-                {departments.map(dept => <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => applyFilters({ status: value })} value={filters.status || 'ALL'}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="OPEN">Open</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="CLOSED">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => applyFilters({ priority: value })} value={filters.priority || 'ALL'}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Priorities</SelectItem>
-                <SelectItem value="LOW">Low</SelectItem>
-                <SelectItem value="MEDIUM">Medium</SelectItem>
-                <SelectItem value="HIGH">High</SelectItem>
-                <SelectItem value="URGENT">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
+        {activeRole !== 'CUSTOMER' && (
+          <div className="sticky top-0 bg-white dark:bg-slate-900 py-4 z-10">
+            <div className="flex items-center space-x-4">
+              <Select onValueChange={(value) => applyFilters({ departmentId: value })} value={filters.departmentId || 'ALL'}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Departments</SelectItem>
+                  {departments.map(dept => <SelectItem key={dept.id} value={dept.id.toString()}>{dept.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(value) => applyFilters({ status: value })} value={filters.status || 'ALL'}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="OPEN">Open</SelectItem>
+                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                  <SelectItem value="CLOSED">Closed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(value) => applyFilters({ priority: value })} value={filters.priority || 'ALL'}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Priorities</SelectItem>
+                  <SelectItem value="LOW">Low</SelectItem>
+                  <SelectItem value="MEDIUM">Medium</SelectItem>
+                  <SelectItem value="HIGH">High</SelectItem>
+                  <SelectItem value="URGENT">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
+        )}
         {renderContent()}
       </div>
       <CreateTicketModal
