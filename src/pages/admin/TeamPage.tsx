@@ -8,6 +8,7 @@ import { Plus, LayoutGrid, List } from 'lucide-react';
 import { InviteModal } from '@/components/admin/InviteModal';
 import { TeamMemberCard } from '@/components/admin/TeamMemberCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRoleSlug } from '@/utils/roleUtils';
 import { motion } from 'framer-motion';

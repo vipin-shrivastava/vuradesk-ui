@@ -25,6 +25,7 @@ import TicketInboxLayout from './pages/inbox/TicketInboxLayout';
 import TicketConversationPane from './pages/inbox/TicketConversationPane';
 import { useSystemSettings } from './contexts/SystemSettingsContext';
 import { TicketProvider } from './contexts/TicketContext';
+import { useAuth } from './contexts/AuthContext';
 import { getRoleSlug } from './utils/roleUtils';
 import './App.css';
 
