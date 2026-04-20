@@ -47,3 +47,33 @@ These events occur within the authenticated workspace.
 | **Fetch Permissions** | Load role details | `/api/admin/permissions` | `GET` | None |
 | **Manage Agents** | CRUD actions on team page | `/api/admin/agents` | `GET/POST/DELETE`| Depends on action |
 | **Manage Mailboxes** | CRUD on mailbox settings | `/api/admin/mailboxes` | `GET/POST/DELETE`| Depends on action |
+
+---
+
+## Common Backend Endpoint Usage Patterns
+
+Several core entities are accessed in both Public and Private contexts. The backend follows a consistent naming convention where public-facing endpoints are prefixed with `/public/`.
+
+### 1. Departments
+Used for categorizing tickets during submission.
+*   **Public**: `/api/public/departments` (Fetching list for guest users)
+*   **Private**: `/api/departments` (Fetching list for authenticated users/agents)
+
+### 2. System Settings
+Used for branding (App Name, Logo, etc.).
+*   **Public**: `/api/system/public/settings` (ReadOnly, unauthenticated)
+*   **Private**: `/api/system/settings` (ReadOnly, authenticated)
+*   **Admin**: `/api/system/admin/settings` (Read/Write, restricted to Admin role)
+
+### 3. Ticket Operations
+*   **Creation**:
+    *   Guest users use `/api/public/tickets` (`POST`).
+    *   Authenticated users use `/api/tickets` (`POST`).
+*   **Management**:
+    *   Only available via private `/api/tickets/*` endpoints (Requires authentication and appropriate roles like `AGENT` or `ADMIN`).
+
+### 4. File & Attachment Handling
+*   **Uploads**: Primarily handled via `/api/attachments/upload` (Requires authentication).
+*   **Downloads**: Handled via `/api/attachments/download/{id}`. 
+    *   *Note: Access to attachments is generally secured and requires a valid session token.*
+
