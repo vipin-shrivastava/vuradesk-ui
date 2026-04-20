@@ -25,7 +25,16 @@ import TicketInboxLayout from './pages/inbox/TicketInboxLayout';
 import TicketConversationPane from './pages/inbox/TicketConversationPane';
 import { useSystemSettings } from './contexts/SystemSettingsContext';
 import { TicketProvider } from './contexts/TicketContext';
+import { getRoleSlug } from './utils/roleUtils';
 import './App.css';
+
+const RedirectToActiveRole = () => {
+  const { settings } = useSystemSettings();
+  const { activeRole } = useAuth();
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
+  const roleSlug = getRoleSlug(activeRole);
+  return <Navigate to={`/${appSlug}/${roleSlug}/dashboard`} replace />;
+};
 
 function App() {
   const { settings } = useSystemSettings();
@@ -149,7 +158,22 @@ function App() {
             }
           />
           <Route
-            path="/admin/access-control"
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ProfilePage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Legacy /admin/ redirect to active role slug */}
+          <Route path="/admin/*" element={<RedirectToActiveRole />} />
+
+          {/* Dynamic Role-Based Administrative Routes */}
+          <Route
+            path="/:roleSlug/access-control"
             element={
               <ProtectedRoute>
                 <MainLayout>
@@ -159,7 +183,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/team"
+            path="/:roleSlug/team"
             element={
               <ProtectedRoute>
                 <MainLayout>
@@ -169,7 +193,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/team/edit/:agentId"
+            path="/:roleSlug/team/edit/:agentId"
             element={
               <ProtectedRoute>
                 <MainLayout>
@@ -179,7 +203,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/mailbox"
+            path="/:roleSlug/mailbox"
             element={
               <ProtectedRoute>
                 <MainLayout>

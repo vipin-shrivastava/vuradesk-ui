@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import { useSharedTicket } from '@/contexts/TicketContext';
 import RoleDropdown from './RoleDropdown';
+import { getRoleSlug } from '@/utils/roleUtils';
 import Tooltip from './Tooltip';
 import logo from '@/assets/logo.png';
 import FloatingCreateButton from './FloatingCreateButton';
@@ -24,6 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const { settings } = useSystemSettings();
   const { isSwitchingRole } = useSharedTicket();
+  const roleSlug = getRoleSlug(activeRole);
   const location = useLocation();
 
   const isTicketDetailPage = /^\/tickets\/.+/.test(location.pathname);
@@ -57,19 +59,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
     { 
       name: 'Access Control', 
-      href: '/admin/access-control', 
+      href: `/${roleSlug}/access-control`, 
       icon: Shield, 
       visible: hasPermission('role:manage') 
     },
     { 
       name: 'Team', 
-      href: '/admin/team', 
+      href: `/${roleSlug}/team`, 
       icon: Users, 
       visible: hasPermission('user:manage') 
     },
     { 
       name: 'Mailbox', 
-      href: '/admin/mailbox', 
+      href: `/${roleSlug}/mailbox`, 
       icon: Mail, 
       visible: hasPermission('system:settings') 
     },

@@ -8,7 +8,8 @@ import { Plus, LayoutGrid, List } from 'lucide-react';
 import { InviteModal } from '@/components/admin/InviteModal';
 import { TeamMemberCard } from '@/components/admin/TeamMemberCard';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { getRoleSlug } from '@/utils/roleUtils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -27,9 +28,11 @@ export interface PermissionGroup {
 }
 
 const TeamPage = () => {
+  const { user, activeRole } = useAuth();
   const { agents, setAgents, loading, error, fetchAgents } = useAgents();
   const { roles } = useRoles();
   const navigate = useNavigate();
+  const roleSlug = getRoleSlug(activeRole);
 
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -162,7 +165,7 @@ const TeamPage = () => {
               key={agent.id}
               agent={agent}
               onStatusChange={handleStatusChange}
-              onCardClick={() => navigate(`/admin/team/edit/${agent.id}`)}
+              onCardClick={() => navigate(`/${roleSlug}/team/edit/${agent.id}`)}
             />
           ))}
         </div>
@@ -178,7 +181,7 @@ const TeamPage = () => {
           </TableHeader>
           <TableBody>
             {agentsToDisplay.map((agent) => (
-              <TableRow key={agent.id} onClick={() => navigate(`/admin/team/edit/${agent.id}`)} className="cursor-pointer">
+              <TableRow key={agent.id} onClick={() => navigate(`/${roleSlug}/team/edit/${agent.id}`)} className="cursor-pointer">
                 <TableCell className="font-semibold text-sm">{`${agent.firstName} ${agent.lastName}`}</TableCell>
                 <TableCell className="font-semibold text-sm">{agent.email}</TableCell>
                 <TableCell className="font-semibold text-sm">{agent.roles.map(r => r.replace('ROLE_', '')).join(', ')}</TableCell>

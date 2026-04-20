@@ -11,6 +11,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import axiosClient from '@/api/axiosClient';
+import { useAuth } from '@/contexts/AuthContext';
+import { getRoleSlug } from '@/utils/roleUtils';
 import { motion } from 'framer-motion';
 import { Lock, User, AlertTriangle, Camera } from 'lucide-react';
 import { Permission, PermissionGroup } from './TeamPage';
@@ -45,9 +47,11 @@ const getAvatarUrl = (path?: string) => {
 };
 
 const EditAgentPage: React.FC = () => {
+  const { activeRole } = useAuth();
   const { agentId } = useParams<{ agentId: string }>();
   const navigate = useNavigate();
   const { roles } = useRoles();
+  const roleSlug = getRoleSlug(activeRole);
 
   const [baseAgent, setBaseAgent] = useState<Agent | null>(null);
   const [editAgent, setEditAgent] = useState<Partial<Agent>>({});
@@ -207,7 +211,7 @@ const EditAgentPage: React.FC = () => {
       await fetchAgentDetails();
 
       toast.success('Agent updated successfully!', { id: toastId });
-      navigate('/admin/team');
+      navigate(`/${roleSlug}/team`);
     } catch (error) {
       toast.error('Failed to save changes.', { id: toastId });
     } finally {
@@ -331,7 +335,7 @@ const EditAgentPage: React.FC = () => {
       </div>
 
       <div className="sticky bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm p-4 border-t border-slate-200 flex justify-end gap-2 mt-8">
-        <Button variant="outline" onClick={() => navigate('/admin/team')}>Cancel</Button>
+        <Button variant="outline" onClick={() => navigate(`/${roleSlug}/team`)}>Cancel</Button>
         <Button
           onClick={handleSaveChanges}
           disabled={isSaving}
