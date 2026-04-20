@@ -7,12 +7,12 @@ These routes are accessible without authentication and use the `PublicLayout`.
 
 | Page Description | Route | Component |
 | :--- | :--- | :--- |
-| **Login Page** | `/login` (or `/`) | `LoginPage` |
-| **Registration Page** | `/register` | `RegisterPage` |
-| **Public Ticket Submission** | `/submit-ticket` | `PublicTicketPage` |
-| **Forgot Password** | `/forgot-password` | `ForgotPasswordPage` |
-| **Reset Password** | `/reset-password` | `ResetPasswordPage` |
-| **Setup Wizard** | `/setup` | `SetupWizard` |
+| **Login Page** | `{appName}/login` | `LoginPage` |
+| **Registration Page** | `{appName}/public/register` | `RegisterPage` |
+| **Public Ticket Submission** | `{appName}/public/submit-ticket` | `PublicTicketPage` |
+| **Forgot Password** | `{appName}/public/forgot-password` | `ForgotPasswordPage` |
+| **Reset Password** | `{appName}/public/reset-password` | `ResetPasswordPage` |
+| **Setup Wizard** | `public/setup` | `SetupWizard` |
 
 ---
 

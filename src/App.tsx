@@ -23,23 +23,35 @@ import SecurityDebugger from './components/SecurityDebugger';
 import SetupWizard from './pages/setup/SetupWizard';
 import TicketInboxLayout from './pages/inbox/TicketInboxLayout';
 import TicketConversationPane from './pages/inbox/TicketConversationPane';
+import { useSystemSettings } from './contexts/SystemSettingsContext';
 import { TicketProvider } from './contexts/TicketContext';
 import './App.css';
 
 function App() {
+  const { settings } = useSystemSettings();
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
+
   return (
     <>
       <SecurityDebugger />
       <TicketProvider>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
-          <Route path="/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
-          <Route path="/submit-ticket" element={<PublicLayout><PublicTicketPage /></PublicLayout>} />
-          <Route path="/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
-          <Route path="/reset-password" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
-          <Route path="/setup" element={<PublicLayout><SetupWizard /></PublicLayout>} />
-          <Route path="/" element={<PublicLayout><LoginPage /></PublicLayout>} />
+          {/* Public Routes with appName prefix */}
+          <Route path="/:appName/login" element={<PublicLayout><LoginPage /></PublicLayout>} />
+          <Route path="/:appName/public/register" element={<PublicLayout><RegisterPage /></PublicLayout>} />
+          <Route path="/:appName/public/submit-ticket" element={<PublicLayout><PublicTicketPage /></PublicLayout>} />
+          <Route path="/:appName/public/forgot-password" element={<PublicLayout><ForgotPasswordPage /></PublicLayout>} />
+          <Route path="/:appName/public/reset-password" element={<PublicLayout><ResetPasswordPage /></PublicLayout>} />
+          <Route path="/public/setup" element={<PublicLayout><SetupWizard /></PublicLayout>} />
+          
+          {/* Redirects for legacy routes and root */}
+          <Route path="/login" element={<Navigate to={`/${appSlug}/login`} replace />} />
+          <Route path="/register" element={<Navigate to={`/${appSlug}/public/register`} replace />} />
+          <Route path="/submit-ticket" element={<Navigate to={`/${appSlug}/public/submit-ticket`} replace />} />
+          <Route path="/forgot-password" element={<Navigate to={`/${appSlug}/public/forgot-password`} replace />} />
+          <Route path="/reset-password" element={<Navigate to={`/${appSlug}/public/reset-password`} replace />} />
+          <Route path="/setup" element={<Navigate to="/public/setup" replace />} />
+          <Route path="/" element={<Navigate to={`/${appSlug}/login`} replace />} />
 
           {/* Protected Routes that DO NOT use the MainLayout */}
           <Route

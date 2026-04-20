@@ -17,7 +17,7 @@ interface SystemSettingsContextType {
 }
 
 const defaultSettings: SystemSettings = {
-  appName: 'VuraDesk',
+  appName: 'vuradesk',
   primaryFont: 'Inter',
   logoUrl: '/src/assets/logo.png',
   loginTagline: 'Your ultimate solution for seamless customer support.',
