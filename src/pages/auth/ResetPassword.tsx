@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Mail, Loader2 } from 'lucide-react'; // Added Loader2
 import { Link, useLocation, useNavigate } from 'react-router-dom'; // Added useNavigate
 import axiosClient from '@/api/axiosClient'; // Import axiosClient
+import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import { toast } from 'sonner'; // Assuming sonner is used for toasts
 
 const ResetPasswordPage: React.FC = () => {
@@ -16,6 +17,8 @@ const ResetPasswordPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false); // Added loading state
   const [error, setError] = useState<string | null>(null); // Added error state
+  const { settings } = useSystemSettings();
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -47,7 +50,7 @@ const ResetPasswordPage: React.FC = () => {
       });
       console.log("Password reset successful:", response.data); // Success feedback
       toast.success("Your password has been reset successfully!");
-      navigate('/login'); // Redirect to login page on success
+      navigate(`/${appSlug}/login`); // Redirect to login page on success
     } catch (err: any) {
       console.error('Password reset failed:', err);
       const errorMessage = err.response?.data?.message || 'Failed to reset password. Please try again.';
@@ -102,7 +105,7 @@ const ResetPasswordPage: React.FC = () => {
                 Reset Password
               </Button>
               <div className="text-center text-sm">
-                <Link to="/login" className="text-uv-blue hover:underline">
+                <Link to={`/${appSlug}/login`} className="text-uv-blue hover:underline">
                   Back to Login
                 </Link>
               </div>
@@ -111,7 +114,7 @@ const ResetPasswordPage: React.FC = () => {
             <div className="text-center text-red-500">
               No reset token found. Please use the forgot password link.
               <div className="mt-4">
-                <Link to="/forgot-password" className="text-uv-blue hover:underline">
+                <Link to={`/${appSlug}/public/forgot-password`} className="text-uv-blue hover:underline">
                   Go to Forgot Password
                 </Link>
               </div>

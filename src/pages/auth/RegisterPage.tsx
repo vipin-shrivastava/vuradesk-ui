@@ -16,6 +16,8 @@ const RegisterPage: React.FC = () => {
   const { settings } = useSystemSettings();
   const navigate = useNavigate();
 
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/tickets', { replace: true });
@@ -36,7 +38,7 @@ const RegisterPage: React.FC = () => {
       // Endpoint to be confirmed with backend, assuming /auth/register
       await axiosClient.post('/auth/register', payload);
       toast.success('Registration successful! Please log in.');
-      navigate('/login');
+      navigate(`/${appSlug}/login`);
     } catch (err: any) {
       console.error('Registration failed:', err);
       const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -145,7 +147,7 @@ const RegisterPage: React.FC = () => {
             <div className="text-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
-                <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                <Link to={`/${appSlug}/login`} className="font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200">
                   Log in
                 </Link>
               </span>

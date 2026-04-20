@@ -38,6 +38,8 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
+
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-gray-100 dark:bg-background-main font-sans">
       {/* Left Panel */}
@@ -81,9 +83,9 @@ const LoginPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-left w-full text-sm font-bold text-slate-900 tracking-tight">Password</label>
-                <a href="#" className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors">
+                <Link to={`/${appSlug}/public/forgot-password`} className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors">
                   Forgot Password?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -123,12 +125,12 @@ const LoginPage: React.FC = () => {
           <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center space-y-4">
             <span className="text-sm text-slate-600">
               Don't have an account?{' '}
-              <Link to="/register" className="font-bold hover:underline underline-offset-2 transition-all" style={{ color: 'var(--primary-brand)' }}>
+              <Link to={`/${appSlug}/public/register`} className="font-bold hover:underline underline-offset-2 transition-all" style={{ color: 'var(--primary-brand)' }}>
                 Register here
               </Link>
             </span>
 
-            <Link to="/submit-ticket" className="text-xs font-medium text-slate-600 hover:text-slate-700 transition-colors flex items-center">
+            <Link to={`/${appSlug}/public/submit-ticket`} className="text-xs font-medium text-slate-600 hover:text-slate-700 transition-colors flex items-center">
               Need help? Submit a support ticket
             </Link>
           </div>

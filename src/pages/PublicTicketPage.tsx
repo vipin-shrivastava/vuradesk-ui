@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import axiosClient from '@/api/axiosClient';
 import { toast } from 'sonner';
@@ -7,6 +8,7 @@ import DepartmentSelect from '@/components/forms/DepartmentSelect';
 
 const PublicTicketPage: React.FC = () => {
   const { settings } = useSystemSettings();
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -257,7 +259,7 @@ const PublicTicketPage: React.FC = () => {
           <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/30 text-center">
             <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">Are you a registered user?</h4>
             <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-4">Log in to track your ticket status.</p>
-            <a href="/login" className="inline-block text-sm font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2">Go to Login</a>
+            <Link to={`/${appSlug}/login`} className="inline-block text-sm font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2">Go to Login</Link>
           </div>
         </div>
       </div>

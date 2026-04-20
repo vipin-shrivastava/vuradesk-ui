@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Mail, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import axiosClient from '@/api/axiosClient'; // Import axiosClient
+import axiosClient from '@/api/axiosClient';
+import { useSystemSettings } from '@/contexts/SystemSettingsContext';
 import { toast } from 'sonner'; // Assuming sonner is used for toasts
 
 const ForgotPasswordPage: React.FC = () => {
@@ -13,6 +14,8 @@ const ForgotPasswordPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { settings } = useSystemSettings();
+  const appSlug = (settings.appName || 'vuradesk').toLowerCase();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +71,7 @@ const ForgotPasswordPage: React.FC = () => {
               Send Reset Link
             </Button>
             <div className="text-center text-sm">
-              <Link to="/login" className="text-uv-blue hover:underline">
+              <Link to={`/${appSlug}/login`} className="text-uv-blue hover:underline">
                 Back to Login
               </Link>
             </div>
