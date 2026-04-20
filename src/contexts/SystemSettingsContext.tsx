@@ -39,7 +39,10 @@ export const SystemSettingsProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [settings, setSettings] = useState<SystemSettings>(defaultSettings);
 
   const fetchSystemSettings = useCallback(async () => {
-    const url = '/system/public/settings';
+    // Check if we have a token in localStorage to decide which endpoint to use
+    const token = localStorage.getItem('token');
+    const url = token ? '/system/settings' : '/system/public/settings';
+    
     try {
       const response = await axiosClient.get(url);
       if (response.data) {

@@ -154,7 +154,7 @@ const PublicTicketPage: React.FC = () => {
                 <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">We'll use this to send you updates.</p>
               </div>
 
-              <DepartmentSelect onValueChange={setDepartmentId} value={departmentId} />
+              <DepartmentSelect onValueChange={setDepartmentId} value={departmentId} isPublic={true} />
 
               {/* Subject */}
               <div>
@@ -230,23 +230,23 @@ const PublicTicketPage: React.FC = () => {
               <li>
                 <a href="#" className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
                   <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 mr-3 transition-colors">
-                     <HelpCircle size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                    <HelpCircle size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                   </div>
                   How to Reset Password
                 </a>
               </li>
               <li>
                 <a href="#" className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
-                   <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 mr-3 transition-colors">
-                     <FileQuestion size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 mr-3 transition-colors">
+                    <FileQuestion size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                   </div>
                   Billing FAQs
                 </a>
               </li>
               <li>
                 <a href="#" className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
-                   <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 mr-3 transition-colors">
-                     <BookOpen size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 mr-3 transition-colors">
+                    <BookOpen size={16} className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                   </div>
                   Documentation
                 </a>
@@ -254,11 +254,11 @@ const PublicTicketPage: React.FC = () => {
             </ul>
           </div>
 
-           <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/30 text-center">
-             <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">Are you a registered user?</h4>
-             <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-4">Log in to track your ticket status.</p>
-             <a href="/login" className="inline-block text-sm font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2">Go to Login</a>
-           </div>
+          <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/30 text-center">
+            <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">Are you a registered user?</h4>
+            <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-4">Log in to track your ticket status.</p>
+            <a href="/login" className="inline-block text-sm font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline underline-offset-2">Go to Login</a>
+          </div>
         </div>
       </div>
 

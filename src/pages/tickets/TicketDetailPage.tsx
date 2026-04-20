@@ -54,7 +54,7 @@ const AiHud = () => (
 const TicketDetailPage: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const { ticket, loading, error, refetch, setTicket } = useTicket(ticketId);
-  const { user, activeRole } = useAuth();
+  const { user, activeRole, hasPermission } = useAuth();
   const [newReply, setNewReply] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   const [isInternalNote, setIsInternalNote] = useState(false);
@@ -441,7 +441,7 @@ const TicketDetailPage: React.FC = () => {
                      disabled={isUpdatingStatus}
                    >
                      {isUpdatingStatus ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                     {ticket.status.replace('_', ' ')}
+                     {ticket.status?.replace('_', ' ')}
                    </Badge>
                  </DropdownMenuTrigger>
                  <DropdownMenuContent className="w-40 bg-white dark:bg-slate-800 border border-card-border rounded-md shadow-lg z-50">
@@ -475,10 +475,10 @@ const TicketDetailPage: React.FC = () => {
           <div className="flex flex-col w-full items-start mb-4">
             <div className="flex items-center mb-1 ml-1">
               <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300 mr-2">
-                 {getInitials(ticket.customerName)}
+                 {getInitials(ticket.customerName || (ticket as any).creatorName)}
               </div>
               <span className="font-bold text-xs text-slate-600 dark:text-slate-400 flex items-center">
-                 {ticket.customerName} (Initial Request)
+                 {ticket.customerName || (ticket as any).creatorName} (Initial Request)
               </span>
             </div>
 

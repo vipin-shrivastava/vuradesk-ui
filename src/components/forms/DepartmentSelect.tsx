@@ -11,16 +11,18 @@ interface Department {
 interface DepartmentSelectProps {
   onValueChange: (value: string) => void;
   value: string;
+  isPublic?: boolean;
 }
 
-const DepartmentSelect: React.FC<DepartmentSelectProps> = ({ onValueChange, value }) => {
+const DepartmentSelect: React.FC<DepartmentSelectProps> = ({ onValueChange, value, isPublic = false }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axiosClient.get('/public/departments');
+        const url = isPublic ? '/public/departments' : '/departments';
+        const response = await axiosClient.get(url);
         setDepartments(response.data);
       } catch (error) {
         console.error('Failed to fetch departments:', error);
@@ -29,7 +31,7 @@ const DepartmentSelect: React.FC<DepartmentSelectProps> = ({ onValueChange, valu
       }
     };
     fetchDepartments();
-  }, []);
+  }, [isPublic]);
 
   return (
     <div>
