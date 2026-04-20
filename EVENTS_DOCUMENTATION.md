@@ -77,3 +77,32 @@ Used for branding (App Name, Logo, etc.).
 *   **Downloads**: Handled via `/api/attachments/download/{id}`. 
     *   *Note: Access to attachments is generally secured and requires a valid session token.*
 
+---
+
+## Backend Endpoint Verification Status
+
+This section tracks the availability and correctness of backend endpoints used by the UI.
+
+| Endpoint | Status | Backend Controller | Notes |
+| :--- | :--- | :--- | :--- |
+| `/api/auth/*` | ✅ Available | `AuthController` | Login, Register, Forgot/Reset password confirmed. |
+| `/api/public/tickets` | ✅ Available | `PublicTicketController` | Confirmed. |
+| `/api/public/setup/*` | ✅ Available | `SetupController` | `initialize` and `status` confirmed. |
+| `/api/public/departments`| ✅ Available | `PublicDepartmentController`| Confirmed. |
+| `/api/system/public/settings`| ✅ Available | `SystemSettingsController`| Confirmed. |
+| `/api/dashboard/summary` | ✅ Available | `DashboardController` | Confirmed. |
+| `/api/tickets` (GET/POST) | ✅ Available | `TicketController` | Confirmed. |
+| `/api/tickets/{id}` | ✅ Available | `TicketController` | Confirmed. |
+| **`/api/tickets/{id}/status`**| ❌ **Missing** | N/A | **Backend missing specific PATCH for status.** UI needs to use `PUT /api/tickets/{id}` or backend needs new endpoint. |
+| `/api/tickets/{id}/assign` | ✅ Available | `TicketController` | Confirmed (PATCH). |
+| `/api/tickets/{id}/replies`| ✅ Available | `TicketThreadController`| Confirmed. |
+| `/api/attachments/upload` | ✅ Available | `AttachmentController` | Confirmed. |
+| `/api/attachments/{id}/download`| ✅ Available | `AttachmentController` | Confirmed. (UI must use this specific path) |
+| `/api/attachments/download/all`| ✅ Available | `AttachmentController` | Confirmed. |
+| `/api/users/list/agents-admins`| ✅ Available | `UserController` | Confirmed (Returns Page object). |
+| `/api/admin/roles` | ✅ Available | `RoleController` | Confirmed. |
+| `/api/admin/permissions` | ✅ Available | `PermissionController` | Confirmed. |
+| `/api/admin/agents` | ✅ Available | `AdminController` | Confirmed. |
+| `/api/admin/mailboxes` | ✅ Available | `EmailChannelController` | Confirmed. |
+
+
