@@ -93,7 +93,7 @@ This section tracks the availability and correctness of backend endpoints used b
 | `/api/dashboard/summary` | ✅ Available | `DashboardController` | Confirmed. |
 | `/api/tickets` (GET/POST) | ✅ Available | `TicketController` | Confirmed. |
 | `/api/tickets/{id}` | ✅ Available | `TicketController` | Confirmed. |
-| **`/api/tickets/{id}/status`**| ❌ **Missing** | N/A | **Backend missing specific PATCH for status.** UI needs to use `PUT /api/tickets/{id}` or backend needs new endpoint. |
+| **`/api/tickets/{id}/status`**| ✅ **Available** | `TicketController` | Added specific PATCH for status update. |
 | `/api/tickets/{id}/assign` | ✅ Available | `TicketController` | Confirmed (PATCH). |
 | `/api/tickets/{id}/replies`| ✅ Available | `TicketThreadController`| Confirmed. |
 | `/api/attachments/upload` | ✅ Available | `AttachmentController` | Confirmed. |
