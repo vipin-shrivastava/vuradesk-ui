@@ -18,8 +18,8 @@ These events occur on pages accessible without authentication.
 
 ---
 
-## Private Page Events
-These events occur within the authenticated workspace.
+## Private Page (Workspace) Events
+These events occur within the authenticated workspace for agents and customers.
 
 ### Dashboard & Analytics
 | Event Description | Trigger | Backend Endpoint | Method | Parameters / Request Body |
@@ -35,18 +35,29 @@ These events occur within the authenticated workspace.
 | **Update Status** | Change status dropdown | `/api/tickets/{ticketId}/status` | `PATCH` | `status` |
 | **Assign Agent** | Select agent from dropdown | `/api/tickets/{ticketId}/assign` | `PATCH` | `userId` |
 | **Upload Attachment** | Select file in reply box | `/api/attachments/upload` | `POST` | `file` (Multipart/form-data) |
-| **Download File** | Click attachment | `/api/attachments/download/{id}` | `GET` | None |
+| **Download File** | Click attachment | `/api/attachments/{id}/download` | `GET` | None |
 | **Download All (ZIP)** | Click "Download All" | `/api/attachments/download/all` | `GET` | `ticketId`, `threadEntryId` (optional) |
 
-### Administration & Settings
-| Event Description | Trigger | Backend Endpoint | Method | Parameters / Request Body |
-| :--- | :--- | :--- | :--- | :--- |
-| **Fetch Agents** | Load team/assign list | `/api/users/list/agents-admins` | `GET` | None |
-| **Save System Settings** | Submit settings form | `/api/system/admin/settings` | `PUT` | `appName`, `logoUrl`, `loginTagline`, `footerText`, etc. |
-| **Fetch Roles** | Load access control | `/api/admin/roles` | `GET` | None |
-| **Fetch Permissions** | Load role details | `/api/admin/permissions` | `GET` | None |
-| **Manage Agents** | CRUD actions on team page | `/api/admin/agents` | `GET/POST/DELETE`| Depends on action |
-| **Manage Mailboxes** | CRUD on mailbox settings | `/api/admin/mailboxes` | `GET/POST/DELETE`| Depends on action |
+---
+
+## Administrative Events & Endpoints (/admin/)
+These actions are restricted to users with `ADMIN` roles and manage system-wide configurations.
+
+### UI Routes
+| Page Name | UI Route Path | Description |
+| :--- | :--- | :--- |
+| **Team Management** | `/admin/team` | Manage agents, roles, and status. |
+| **Access Control** | `/admin/access-control` | Manage roles and permissions mapping. |
+| **Mailbox Settings** | `/admin/mailbox` | Configure email channels (SMTP/IMAP). |
+
+### Backend API Endpoints
+| Event Description | Backend Endpoint | Method | Backend Controller |
+| :--- | :--- | :--- | :--- |
+| **System Settings** | `/api/system/admin/settings` | `PUT` | `SystemSettingsController` |
+| **Manage Roles** | `/api/admin/roles` | `GET/POST/PUT/DELETE` | `RoleController` |
+| **Manage Permissions** | `/api/admin/permissions` | `GET` | `PermissionController` |
+| **Manage Agents** | `/api/admin/users` | `GET/POST/PUT/PATCH` | `AdminController` |
+| **Manage Mailboxes** | `/api/admin/email-channels` | `GET/POST/PUT` | `EmailChannelController` |
 
 ---
 
@@ -65,24 +76,13 @@ Used for branding (App Name, Logo, etc.).
 *   **Private**: `/api/system/settings` (ReadOnly, authenticated)
 *   **Admin**: `/api/system/admin/settings` (Read/Write, restricted to Admin role)
 
-### 3. Ticket Operations
-*   **Creation**:
-    *   Guest users use `/api/public/tickets` (`POST`).
-    *   Authenticated users use `/api/tickets` (`POST`).
-*   **Management**:
-    *   Only available via private `/api/tickets/*` endpoints (Requires authentication and appropriate roles like `AGENT` or `ADMIN`).
-
-### 4. File & Attachment Handling
-*   **Uploads**: Primarily handled via `/api/attachments/upload` (Requires authentication).
-*   **Downloads**: Handled via `/api/attachments/download/{id}`. 
-    *   *Note: Access to attachments is generally secured and requires a valid session token.*
-
 ---
 
 ## Backend Endpoint Verification Status
 
 This section tracks the availability and correctness of backend endpoints used by the UI.
 
+### Public & Workspace Endpoints
 | Endpoint | Status | Backend Controller | Notes |
 | :--- | :--- | :--- | :--- |
 | `/api/auth/*` | ✅ Available | `AuthController` | Login, Register, Forgot/Reset password confirmed. |
@@ -97,12 +97,36 @@ This section tracks the availability and correctness of backend endpoints used b
 | `/api/tickets/{id}/assign` | ✅ Available | `TicketController` | Confirmed (PATCH). |
 | `/api/tickets/{id}/replies`| ✅ Available | `TicketThreadController`| Confirmed. |
 | `/api/attachments/upload` | ✅ Available | `AttachmentController` | Confirmed. |
-| `/api/attachments/{id}/download`| ✅ Available | `AttachmentController` | Confirmed. (UI must use this specific path) |
+| `/api/attachments/{id}/download`| ✅ Available | `AttachmentController` | Confirmed. |
 | `/api/attachments/download/all`| ✅ Available | `AttachmentController` | Confirmed. |
 | `/api/users/list/agents-admins`| ✅ Available | `UserController` | Confirmed (Returns Page object). |
+
+### Administrative Endpoints (/admin/)
+| Endpoint | Status | Backend Controller | Notes |
+| :--- | :--- | :--- | :--- |
 | `/api/admin/roles` | ✅ Available | `RoleController` | Confirmed. |
 | `/api/admin/permissions` | ✅ Available | `PermissionController` | Confirmed. |
-| `/api/admin/agents` | ✅ Available | `AdminController` | Confirmed. |
-| `/api/admin/mailboxes` | ✅ Available | `EmailChannelController` | Confirmed. |
+| `/api/admin/users` | ✅ Available | `AdminController` | Confirmed. |
+| `/api/admin/email-channels` | ✅ Available | `EmailChannelController` | Confirmed. |
+| `/api/system/admin/settings` | ✅ Available | `SystemSettingsController` | Confirmed. |
 
+
+## Administrative Events & Endpoints (/admin/)
+These actions are restricted to users with `ADMIN` roles and manage system-wide configurations.
+
+### UI Routes
+| Page Name | UI Route Path | Description |
+| :--- | :--- | :--- |
+| **Team Management** | `/admin/team` | Manage agents, roles, and status. |
+| **Access Control** | `/admin/access-control` | Manage roles and permissions mapping. |
+| **Mailbox Settings** | `/admin/mailbox` | Configure email channels (SMTP/IMAP). |
+
+### Backend API Endpoints
+| Event Description | Backend Endpoint | Method | Backend Controller |
+| :--- | :--- | :--- | :--- |
+| **System Settings** | `/api/system/admin/settings` | `PUT` | `SystemSettingsController` |
+| **Manage Roles** | `/api/admin/roles` | `GET/POST/PUT/DELETE` | `RoleController` |
+| **Manage Permissions** | `/api/admin/permissions` | `GET` | `PermissionController` |
+| **Manage Agents** | `/api/admin/users` | `GET/POST/PUT/PATCH` | `AdminController` |
+| **Manage Mailboxes** | `/api/admin/email-channels` | `GET/POST/PUT` | `EmailChannelController` |
 
